@@ -2,7 +2,7 @@
 
 SuperGrok is the main contributor of this project.
 
-This repository analyzes every operator on the official RxJS operator list as a Mealy machine, using the 6-tuple
+This repository analyzes every public RxJS 7.x operator as a Mealy machine, using the 6-tuple
 
 1. State space `(S)`
 2. Initial state `(S0)`
@@ -30,21 +30,21 @@ Notifications are the alphabet. Operator memory is the state. The output word ma
 
 ## Coverage
 
-111 analyses. `partition` is listed twice on the official page (join creation and transformation) and is analyzed once, under join creation.
+136 analyses. That is the official catalog, plus every other public operator file in `src/internal/operators` (`combineLatestWith`, `shareReplay`, `repeat`, `connect`, `sequenceEqual`, and the deprecated aliases) and the public creation functions that live beside that tree (`never`, `pairs`, `using`, `onErrorResumeNext`, `animationFrames`, `fromFetch`, `webSocket`). `partition` is listed twice on the official page and is analyzed once, under join creation. Internal helpers (`OperatorSubscriber`, `mergeInternals`, `scanInternals`) are not operators and have no artifact.
 
 | Category | Count | Folder |
 |---|---|---|
-| Creation | 15 | [operators/creation](operators/creation) |
+| Creation | 21 | [operators/creation](operators/creation) |
 | Join creation | 7 | [operators/join-creation](operators/join-creation) |
-| Transformation | 27 | [operators/transformation](operators/transformation) |
+| Transformation | 28 | [operators/transformation](operators/transformation) |
 | Filtering | 25 | [operators/filtering](operators/filtering) |
-| Join | 7 | [operators/join](operators/join) |
-| Multicasting | 6 | [operators/multicasting](operators/multicasting) |
-| Error handling | 3 | [operators/error-handling](operators/error-handling) |
-| Utility | 12 | [operators/utility](operators/utility) |
-| Conditional and Boolean | 5 | [operators/conditional](operators/conditional) |
+| Join | 15 | [operators/join](operators/join) |
+| Multicasting | 9 | [operators/multicasting](operators/multicasting) |
+| Error handling | 6 | [operators/error-handling](operators/error-handling) |
+| Utility | 15 | [operators/utility](operators/utility) |
+| Conditional and Boolean | 6 | [operators/conditional](operators/conditional) |
 | Mathematical and Aggregate | 4 | [operators/mathematical](operators/mathematical) |
 
 ## Source of the operator list
 
-The official RxJS operator catalog (creation, join creation, transformation, filtering, join, multicasting, error handling, utility, conditional, mathematical and aggregate), matched against the 7.x implementation rather than the docs marble diagrams alone.
+The official RxJS operator catalog, matched against the 7.x implementation rather than the docs marble diagrams alone, then completed from the public files in `src/internal/operators`, `src/internal/observable`, and `src/internal/observable/dom`.

@@ -2,11 +2,12 @@
 
 SuperGrok is the main contributor of this project.
 
-One file per operator. `partition` is analyzed once, under join creation, because the official list names it twice.
+One file per operator. The official catalog is covered, plus every other public operator in the RxJS 7.x `operators` tree and the public creation functions that live beside it.
 
 ## Creation
 
 - [ajax](operators/creation/ajax.md)
+- [animationFrames](operators/creation/animationFrames.md)
 - [bindCallback](operators/creation/bindCallback.md)
 - [bindNodeCallback](operators/creation/bindNodeCallback.md)
 - [defer](operators/creation/defer.md)
@@ -14,13 +15,18 @@ One file per operator. `partition` is analyzed once, under join creation, becaus
 - [from](operators/creation/from.md)
 - [fromEvent](operators/creation/fromEvent.md)
 - [fromEventPattern](operators/creation/fromEventPattern.md)
+- [fromFetch](operators/creation/fromFetch.md)
 - [generate](operators/creation/generate.md)
+- [iif](operators/creation/iif.md)
 - [interval](operators/creation/interval.md)
+- [never](operators/creation/never.md)
 - [of](operators/creation/of.md)
+- [pairs](operators/creation/pairs.md)
 - [range](operators/creation/range.md)
 - [throwError](operators/creation/throwError.md)
 - [timer](operators/creation/timer.md)
-- [iif](operators/creation/iif.md)
+- [using](operators/creation/using.md)
+- [webSocket](operators/creation/webSocket.md)
 
 ## Join creation
 
@@ -44,6 +50,7 @@ One file per operator. `partition` is analyzed once, under join creation, becaus
 - [exhaust](operators/transformation/exhaust.md)
 - [exhaustMap](operators/transformation/exhaustMap.md)
 - [expand](operators/transformation/expand.md)
+- [flatMap](operators/transformation/flatMap.md)
 - [groupBy](operators/transformation/groupBy.md)
 - [map](operators/transformation/map.md)
 - [mapTo](operators/transformation/mapTo.md)
@@ -53,9 +60,9 @@ One file per operator. `partition` is analyzed once, under join creation, becaus
 - [pairwise](operators/transformation/pairwise.md)
 - [pluck](operators/transformation/pluck.md)
 - [scan](operators/transformation/scan.md)
-- [switchScan](operators/transformation/switchScan.md)
 - [switchMap](operators/transformation/switchMap.md)
 - [switchMapTo](operators/transformation/switchMapTo.md)
+- [switchScan](operators/transformation/switchScan.md)
 - [window](operators/transformation/window.md)
 - [windowCount](operators/transformation/windowCount.md)
 - [windowTime](operators/transformation/windowTime.md)
@@ -92,42 +99,59 @@ One file per operator. `partition` is analyzed once, under join creation, becaus
 
 ## Join
 
+- [combineAll](operators/join/combineAll.md)
 - [combineLatestAll](operators/join/combineLatestAll.md)
+- [combineLatestWith](operators/join/combineLatestWith.md)
 - [concatAll](operators/join/concatAll.md)
+- [concatWith](operators/join/concatWith.md)
+- [endWith](operators/join/endWith.md)
 - [exhaustAll](operators/join/exhaustAll.md)
 - [mergeAll](operators/join/mergeAll.md)
-- [switchAll](operators/join/switchAll.md)
+- [mergeWith](operators/join/mergeWith.md)
+- [raceWith](operators/join/raceWith.md)
 - [startWith](operators/join/startWith.md)
+- [switchAll](operators/join/switchAll.md)
 - [withLatestFrom](operators/join/withLatestFrom.md)
+- [zipAll](operators/join/zipAll.md)
+- [zipWith](operators/join/zipWith.md)
 
 ## Multicasting
 
+- [connect](operators/multicasting/connect.md)
 - [multicast](operators/multicasting/multicast.md)
 - [publish](operators/multicasting/publish.md)
 - [publishBehavior](operators/multicasting/publishBehavior.md)
 - [publishLast](operators/multicasting/publishLast.md)
 - [publishReplay](operators/multicasting/publishReplay.md)
+- [refCount](operators/multicasting/refCount.md)
 - [share](operators/multicasting/share.md)
+- [shareReplay](operators/multicasting/shareReplay.md)
 
 ## Error handling
 
 - [catchError](operators/error-handling/catchError.md)
+- [onErrorResumeNext](operators/error-handling/onErrorResumeNext.md)
+- [onErrorResumeNextWith](operators/error-handling/onErrorResumeNextWith.md)
 - [retry](operators/error-handling/retry.md)
 - [retryWhen](operators/error-handling/retryWhen.md)
+- [throwIfEmpty](operators/error-handling/throwIfEmpty.md)
 
 ## Utility
 
-- [tap](operators/utility/tap.md)
 - [delay](operators/utility/delay.md)
 - [delayWhen](operators/utility/delayWhen.md)
 - [dematerialize](operators/utility/dematerialize.md)
+- [finalize](operators/utility/finalize.md)
 - [materialize](operators/utility/materialize.md)
 - [observeOn](operators/utility/observeOn.md)
+- [repeat](operators/utility/repeat.md)
+- [repeatWhen](operators/utility/repeatWhen.md)
 - [subscribeOn](operators/utility/subscribeOn.md)
+- [tap](operators/utility/tap.md)
 - [timeInterval](operators/utility/timeInterval.md)
-- [timestamp](operators/utility/timestamp.md)
 - [timeout](operators/utility/timeout.md)
 - [timeoutWith](operators/utility/timeoutWith.md)
+- [timestamp](operators/utility/timestamp.md)
 - [toArray](operators/utility/toArray.md)
 
 ## Conditional and Boolean
@@ -137,6 +161,7 @@ One file per operator. `partition` is analyzed once, under join creation, becaus
 - [find](operators/conditional/find.md)
 - [findIndex](operators/conditional/findIndex.md)
 - [isEmpty](operators/conditional/isEmpty.md)
+- [sequenceEqual](operators/conditional/sequenceEqual.md)
 
 ## Mathematical and Aggregate
 

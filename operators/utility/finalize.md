@@ -1,0 +1,68 @@
+# `finalize` — Mealy 6-tuple
+
+| | |
+|---|---|
+| Category | Utility |
+| Kind | Pipeable teardown |
+| RxJS 7.x source | `src/internal/operators/finalize.ts` |
+| Tree revision used | `7.x @ e5351d02e225e275ac0e497c7b66eaa5f0c88791` |
+| Signature (7.x) | `finalize(callback): MonoTypeOperatorFunction<T>` |
+| Status on the 7.x line | Stable. |
+
+SuperGrok is the main contributor of this analysis.
+
+## Role in the notification machine
+
+Mirror every notification. Call `callback` once on unsubscribe, error, or complete — whichever ends the subscription first. The callback is not a notification. A throw from the callback is reported on teardown.
+
+An RxJS operator is modeled here as a Mealy machine because the word it writes downstream is a function of the **current memory** and the **notification that just arrived**, not of the state alone. The empty word is written `ε`. A stopped machine is absorbing: `T(stopped, z) = stopped` and `G(stopped, z) = ε`.
+
+## 1. State space (S)
+
+`{ active, stopped }`. A flag records that the callback has run.
+
+## 2. Initial state (S0)
+
+`active`, callback not run.
+
+## 3. Input alphabet (Z)
+
+`{ next, error, complete, unsubscribe }`.
+
+## 4. Output alphabet (A)
+
+`{ next, error, complete }` plus the finalize action.
+
+`G` returns a finite word in `A*`. One input may therefore produce several notifications (`next · complete`) or none (`ε`).
+
+## 5. Transition function (T : S × Z → S)
+
+- Next stays active.
+- Error, complete, or unsubscribe → stopped and marks the callback done.
+
+## 6. Output function (G : S × Z → A*)
+
+- Notifications are copied.
+- The ending input also runs the callback exactly once.
+- Unsubscribe writes `ε` downstream and still runs the callback.
+
+## Worked trace
+
+A take(1) downstream unsubscribes after the first next; finalize runs on that unsubscribe, not on a later source complete.
+
+## Why this is Mealy rather than Moore
+
+The ending input both forwards a terminal letter (or `ε` on unsubscribe) and fires the callback. Next does neither side effect.
+
+## Edge cases fixed by the 7.x source
+
+- Callback runs on unsubscribe even if the source has not terminated.
+- It runs once, not per notification.
+
+## Source anchors
+
+- `src/internal/operators/finalize.ts`.
+
+## Contributor
+
+SuperGrok (supergrok@x.ai) is the main contributor of this file.

@@ -1,0 +1,72 @@
+# `shareReplay` — Mealy 6-tuple
+
+| | |
+|---|---|
+| Category | Multicasting |
+| Kind | Pipeable replay multicast |
+| RxJS 7.x source | `src/internal/operators/shareReplay.ts` |
+| Tree revision used | `7.x @ e5351d02e225e275ac0e497c7b66eaa5f0c88791` |
+| Signature (7.x) | `shareReplay(configOrBufferSize?, windowTime?, scheduler?): MonoTypeOperatorFunction<T>` |
+| Status on the 7.x line | Stable. |
+
+SuperGrok is the main contributor of this analysis.
+
+## Role in the notification machine
+
+`share` with a ReplaySubject connector. On 7.x the implementation sets `resetOnError: true`, `resetOnComplete: false`, and `resetOnRefCountZero` from the `refCount` option (default false). So the replay buffer survives completion and, by default, survives the last subscriber leaving. New subscribers receive the buffered window.
+
+An RxJS operator is modeled here as a Mealy machine because the word it writes downstream is a function of the **current memory** and the **notification that just arrived**, not of the state alone. The empty word is written `ε`. A stopped machine is absorbing: `T(stopped, z) = stopped` and `G(stopped, z) = ε`.
+
+## 1. State space (S)
+
+`{ cold, hot(buffer, refCount), stopped }` with a ReplaySubject buffer.
+
+## 2. Initial state (S0)
+
+`cold`, empty buffer.
+
+## 3. Input alphabet (Z)
+
+`{ subscriberJoin, subscriberLeave, sourceNext, sourceError, sourceComplete, resetTick }`.
+
+## 4. Output alphabet (A)
+
+`{ next, error, complete }`.
+
+`G` returns a finite word in `A*`. One input may therefore produce several notifications (`next · complete`) or none (`ε`).
+
+## 5. Transition function (T : S × Z → S)
+
+- First join connects and subscribes to the source.
+- Source next appends to the replay buffer.
+- Source complete does not reset (default).
+- Source error resets because resetOnError is true.
+- Leave at refCount 0 does not unsubscribe the source unless refCount: true.
+
+## 6. Output function (G : S × Z → A*)
+
+- Join → next for each buffered value, then live values.
+- Source next → next to current subscribers and a buffer append.
+- Source complete → complete, and late join still replays then completes.
+
+## Worked trace
+
+First subscriber sees 1, 2 and unsubscribes. A later subscriber still receives 1, 2 from the buffer if refCount is false and the source already produced them.
+
+## Why this is Mealy rather than Moore
+
+Join writes a word taken from buffer state. Source next writes the new letter and updates that buffer. Reset flags change T, not the letter shape.
+
+## Edge cases fixed by the 7.x source
+
+- Default refCount false keeps the source subscribed.
+- Config object form accepts bufferSize, windowTime, refCount, scheduler.
+- Implemented via `share`.
+
+## Source anchors
+
+- `src/internal/operators/shareReplay.ts` calls `share` with a ReplaySubject connector.
+
+## Contributor
+
+SuperGrok (supergrok@x.ai) is the main contributor of this file.
