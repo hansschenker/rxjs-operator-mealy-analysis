@@ -24,7 +24,7 @@ Commits include the trailer `Co-authored-by: SuperGrok <supergrok@x.ai>` so Supe
 
 ## Method
 
-See [docs/methodology.md](docs/methodology.md).
+See [docs/methodology.md](docs/methodology.md). The matching test plan is [docs/test-plan.md](docs/test-plan.md), with one case list per operator under [test-plans/](test-plans/README.md).
 
 Notifications are the alphabet. Operator memory is the state. The output word may be empty (`ε`) or several letters long (`next · complete`). A stopped machine is absorbing.
 
