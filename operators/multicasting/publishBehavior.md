@@ -1,0 +1,67 @@
+# `publishBehavior` — Mealy 6-tuple
+
+| | |
+|---|---|
+| Category | Multicasting |
+| Kind | Pipeable connectable operator |
+| RxJS 7.x source | `src/internal/operators/publishBehavior.ts` |
+| Tree revision used | `7.x @ e5351d02e225e275ac0e497c7b66eaa5f0c88791` |
+| Signature (7.x) | `publishBehavior(value: T): OperatorFunction<T, T>` |
+| Status on the 7.x line | Deprecated. BehaviorSubject-backed multicast. |
+
+SuperGrok is the main contributor of this analysis.
+
+## Role in the notification machine
+
+Like `publish`, but the subject is a `BehaviorSubject(value)`. Every new subscriber synchronously receives the current value, which starts as `value` even before connect.
+
+An RxJS operator is modeled here as a Mealy machine because the word it writes downstream is a function of the **current memory** and the **notification that just arrived**, not of the state alone. The empty word is written `ε`. A stopped machine is absorbing: `T(stopped, z) = stopped` and `G(stopped, z) = ε`.
+
+## 1. State space (S)
+
+`S = { disconnected(current), connected(current), stopped }`.
+
+## 2. Initial state (S0)
+
+`disconnected(initialValue)`.
+
+## 3. Input alphabet (Z)
+
+`multicast` alphabet plus the behavior current value.
+
+## 4. Output alphabet (A)
+
+`{ next, error, complete }`.
+
+`G` returns a finite word in `A*`. One input may therefore produce several notifications (`next · complete`) or none (`ε`).
+
+## 5. Transition function (T : S × Z → S)
+
+- `subscriberJoin` does not change connection, but current is readable.
+- `sourceNext(v)` sets current to v if connected.
+
+## 6. Output function (G : S × Z → A*)
+
+- `subscriberJoin → next(current)` synchronously.
+- `sourceNext(v) → next(v)` to all current subscribers.
+
+## Worked trace
+
+`publishBehavior(0)` subscriber before connect still gets `next(0)`. After connect and source `1`, subscribers get `next(1)`.
+
+## Why this is Mealy rather than Moore
+
+Join input writes the state value. Source next writes the input value and updates state. Both are Mealy.
+
+## Edge cases fixed by the 7.x source
+
+- Initial value is emitted even if the source never emits.
+- Deprecated.
+
+## Source anchors
+
+- `src/internal/operators/publishBehavior.ts`.
+
+## Contributor
+
+SuperGrok (supergrok@x.ai) is the main contributor of this file.

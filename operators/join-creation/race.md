@@ -1,0 +1,71 @@
+# `race` — Mealy 6-tuple
+
+| | |
+|---|---|
+| Category | Join creation |
+| Kind | Join creation function |
+| RxJS 7.x source | `src/internal/observable/race.ts` |
+| Tree revision used | `7.x @ e5351d02e225e275ac0e497c7b66eaa5f0c88791` |
+| Signature (7.x) | `race(...sources): Observable<T>` |
+| Status on the 7.x line | Stable. Pipeable cousin is `raceWith`. |
+
+SuperGrok is the main contributor of this analysis.
+
+## Role in the notification machine
+
+Subscribe to all sources. The first source to emit a next (or to terminate, in the 7.x race implementation the first notifier wins) becomes the winner; the others are unsubscribed. Forward the winner until it terminates.
+
+An RxJS operator is modeled here as a Mealy machine because the word it writes downstream is a function of the **current memory** and the **notification that just arrived**, not of the state alone. The empty word is written `ε`. A stopped machine is absorbing: `T(stopped, z) = stopped` and `G(stopped, z) = ε`.
+
+## 1. State space (S)
+
+`S = { racing, forwarding(winner), stopped }`.
+
+## 2. Initial state (S0)
+
+`racing` after subscribe.
+
+## 3. Input alphabet (Z)
+
+`{ subscribe, next_i, error_i, complete_i, unsubscribe }`.
+
+## 4. Output alphabet (A)
+
+`{ next(v), error(e), complete }` plus the action of unsubscribing losers.
+
+`G` returns a finite word in `A*`. One input may therefore produce several notifications (`next · complete`) or none (`ε`).
+
+## 5. Transition function (T : S × Z → S)
+
+- `racing × next_i → forwarding(i)` and drop other subscriptions.
+- `racing × error_i → stopped` if that error is the first signal (7.x: first notification wins, including error/complete).
+- `racing × complete_i → stopped` if complete wins the race.
+- `forwarding(i)` copies i's transitions; signals from losers are not in Z anymore.
+
+## 6. Output function (G : S × Z → A*)
+
+- `racing × next_i(v) → next(v)`.
+- `racing × error_i(e) → error(e)`.
+- `racing × complete_i → complete`.
+- Later winner notifications are forwarded.
+
+## Worked trace
+
+`race(slow$, fastOf(1))` writes `next(1) complete` and unsubscribes `slow$` as soon as `1` arrives.
+
+## Why this is Mealy rather than Moore
+
+In `racing`, the same control state produces a forward-next, an error, or a complete depending on which input wins. Winner identity is then stored.
+
+## Edge cases fixed by the 7.x source
+
+- Empty race completes.
+- Synchronous first source wins before later sources are fully armed only according to subscription order; a sync source earlier in the list wins.
+
+## Source anchors
+
+- `src/internal/observable/race.ts` and `src/internal/operators/raceWith.ts`.
+
+## Contributor
+
+SuperGrok (supergrok@x.ai) is the main contributor of this file.

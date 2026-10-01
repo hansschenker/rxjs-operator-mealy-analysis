@@ -1,0 +1,70 @@
+# `auditTime` — Mealy 6-tuple
+
+| | |
+|---|---|
+| Category | Filtering |
+| Kind | Pipeable operator |
+| RxJS 7.x source | `src/internal/operators/auditTime.ts` |
+| Tree revision used | `7.x @ e5351d02e225e275ac0e497c7b66eaa5f0c88791` |
+| Signature (7.x) | `auditTime(duration, scheduler = asyncScheduler): MonoTypeOperatorFunction<T>` |
+| Status on the 7.x line | Stable. |
+
+SuperGrok is the main contributor of this analysis.
+
+## Role in the notification machine
+
+`audit` with a timer duration. The first value in an idle period starts a timer and is not emitted yet. Values during the timer overwrite the pending value. Timer fire emits the latest and goes idle.
+
+An RxJS operator is modeled here as a Mealy machine because the word it writes downstream is a function of the **current memory** and the **notification that just arrived**, not of the state alone. The empty word is written `ε`. A stopped machine is absorbing: `T(stopped, z) = stopped` and `G(stopped, z) = ε`.
+
+## 1. State space (S)
+
+`S = { idle, auditing(latest), stopped }`.
+
+## 2. Initial state (S0)
+
+`idle`.
+
+## 3. Input alphabet (Z)
+
+`{ next(v), error, complete, tick, unsubscribe }`.
+
+## 4. Output alphabet (A)
+
+`{ next(v), error, complete }`.
+
+`G` returns a finite word in `A*`. One input may therefore produce several notifications (`next · complete`) or none (`ε`).
+
+## 5. Transition function (T : S × Z → S)
+
+- `idle × next(v) → auditing(v)`.
+- `auditing × next(v) → auditing(v)`.
+- `tick → idle`.
+- Terminal → `stopped`.
+
+## 6. Output function (G : S × Z → A*)
+
+- Source next → `ε`.
+- `tick → next(latest)`.
+- `complete` flushes pending then completes.
+
+## Worked trace
+
+Two values inside the duration and a tick write a single `next` of the second value.
+
+## Why this is Mealy rather than Moore
+
+Tick input, not the source next, is what produces the output letter from pending state.
+
+## Edge cases fixed by the 7.x source
+
+- Unlike `throttleTime`, this is trailing-edge.
+- Complete flushes.
+
+## Source anchors
+
+- `src/internal/operators/auditTime.ts`.
+
+## Contributor
+
+SuperGrok (supergrok@x.ai) is the main contributor of this file.

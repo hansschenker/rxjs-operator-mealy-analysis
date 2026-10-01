@@ -1,0 +1,69 @@
+# `expand` — Mealy 6-tuple
+
+| | |
+|---|---|
+| Category | Transformation |
+| Kind | Pipeable recursive higher-order operator |
+| RxJS 7.x source | `src/internal/operators/expand.ts` |
+| Tree revision used | `7.x @ e5351d02e225e275ac0e497c7b66eaa5f0c88791` |
+| Signature (7.x) | `expand(project, concurrent = Infinity, scheduler?): OperatorFunction<T, T>` |
+| Status on the 7.x line | Stable. |
+
+SuperGrok is the main contributor of this analysis.
+
+## Role in the notification machine
+
+Emit the source value, and also subscribe to `project(value)` whose emissions are emitted and recursively expanded. `concurrent` bounds active inners. It is `mergeMap` with feedback of outputs into the project function. No implicit complete until the source and every recursive inner complete.
+
+An RxJS operator is modeled here as a Mealy machine because the word it writes downstream is a function of the **current memory** and the **notification that just arrived**, not of the state alone. The empty word is written `ε`. A stopped machine is absorbing: `T(stopped, z) = stopped` and `G(stopped, z) = ε`.
+
+## 1. State space (S)
+
+`S = { active count, queue of values still to expand, outerDone, stopped }`.
+
+## 2. Initial state (S0)
+
+Active 0, empty queue.
+
+## 3. Input alphabet (Z)
+
+`{ outerNext(v), outerError, outerComplete, innerNext(v), innerError, innerComplete, unsubscribe }`.
+
+## 4. Output alphabet (A)
+
+`{ next(v), error, complete }`.
+
+`G` returns a finite word in `A*`. One input may therefore produce several notifications (`next · complete`) or none (`ε`).
+
+## 5. Transition function (T : S × Z → S)
+
+- `outerNext` and `innerNext` enqueue an expansion and emit.
+- Active expansions are started up to `concurrent`.
+- Idle and outer done and empty queue → `stopped`.
+
+## 6. Output function (G : S × Z → A*)
+
+- `outerNext(v) → next(v)`.
+- `innerNext(v) → next(v)`.
+- Completion word only when nothing remains to expand.
+
+## Worked trace
+
+`of(1).pipe(expand(x => x < 3 ? of(x+1) : EMPTY))` writes `next(1) next(2) next(3) complete`.
+
+## Why this is Mealy rather than Moore
+
+An inner next both writes `next` and changes the expansion queue. Output and next state are jointly determined by `(queue state, innerNext)`.
+
+## Edge cases fixed by the 7.x source
+
+- `concurrent: 1` serializes recursion and can change interleaving, not the set of values for a pure project.
+- Scheduler shifts recursive subscribes.
+
+## Source anchors
+
+- `src/internal/operators/expand.ts`.
+
+## Contributor
+
+SuperGrok (supergrok@x.ai) is the main contributor of this file.

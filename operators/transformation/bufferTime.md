@@ -1,0 +1,70 @@
+# `bufferTime` — Mealy 6-tuple
+
+| | |
+|---|---|
+| Category | Transformation |
+| Kind | Pipeable operator |
+| RxJS 7.x source | `src/internal/operators/bufferTime.ts` |
+| Tree revision used | `7.x @ e5351d02e225e275ac0e497c7b66eaa5f0c88791` |
+| Signature (7.x) | `bufferTime(bufferTimeSpan, bufferCreationInterval?, maxBufferSize?, scheduler?): OperatorFunction<T, T[]>` |
+| Status on the 7.x line | Stable. |
+
+SuperGrok is the main contributor of this analysis.
+
+## Role in the notification machine
+
+Open a buffer and emit it when `bufferTimeSpan` elapses. Optional `bufferCreationInterval` opens additional buffers on a cadence (overlapping windows). Optional `maxBufferSize` closes a buffer early when it fills. Scheduler defaults to async.
+
+An RxJS operator is modeled here as a Mealy machine because the word it writes downstream is a function of the **current memory** and the **notification that just arrived**, not of the state alone. The empty word is written `ε`. A stopped machine is absorbing: `T(stopped, z) = stopped` and `G(stopped, z) = ε`.
+
+## 1. State space (S)
+
+`S = { open buffers with their close times, stopped }`.
+
+## 2. Initial state (S0)
+
+One open buffer armed to close after `bufferTimeSpan`.
+
+## 3. Input alphabet (Z)
+
+`{ next(v), error, complete, spanTick(id), creationTick, unsubscribe }`.
+
+## 4. Output alphabet (A)
+
+`{ next(T[]), error, complete }`.
+
+`G` returns a finite word in `A*`. One input may therefore produce several notifications (`next · complete`) or none (`ε`).
+
+## 5. Transition function (T : S × Z → S)
+
+- `next(v)` appends to open buffers; a buffer at `maxBufferSize` closes.
+- `spanTick(id)` closes that buffer and, if no creation interval, opens a successor.
+- `creationTick` opens another buffer.
+- Terminal → `stopped`.
+
+## 6. Output function (G : S × Z → A*)
+
+- `spanTick` and max-size close → `next(buf)`.
+- `complete →` emit open buffers then `complete`.
+- `next` itself → `ε` unless it hit `maxBufferSize`.
+
+## Worked trace
+
+`bufferTime(1000)` over values inside one second emits one array per second, including empty arrays when a span had no values.
+
+## Why this is Mealy rather than Moore
+
+Time ticks are inputs. The emitted array is the state of that buffer. A tick and a source next in the same control regime write different words.
+
+## Edge cases fixed by the 7.x source
+
+- Empty time spans still emit `[]`.
+- Creation interval plus span is the overlapping form.
+
+## Source anchors
+
+- `src/internal/operators/bufferTime.ts`.
+
+## Contributor
+
+SuperGrok (supergrok@x.ai) is the main contributor of this file.
