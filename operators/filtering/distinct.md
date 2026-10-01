@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`distinct` is a pipeable operator on the RxJS 7.x line. Stable. Emit a value only the first time its key is seen. Key defaults to the value itself. Memory is a set. Optional `flushes` observable clears the set when it emits.
+
+In plain terms, the operator keeps this memory: S = { seen: Set, stopped }. At subscription, before any source notification, that memory is Empty set. It reacts to these events: { next(v), error, complete, flush, flushError, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 1, 2, 1).pipe(distinct()) writes next(1) next(2) complete.
+
+Details that a marble diagram often leaves out: Set membership uses the key selector result. Unbounded memory if the key domain is unbounded and no flush is given.
+
 ## Role in the notification machine
 
 Emit a value only the first time its key is seen. Key defaults to the value itself. Memory is a set. Optional `flushes` observable clears the set when it emits.

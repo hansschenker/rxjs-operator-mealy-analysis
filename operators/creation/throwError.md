@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`throwError` is a cold error producer on the RxJS 7.x line. Stable. Passing an error instance directly is deprecated; the factory form is per-subscription. Subscribe calls the error factory and writes `error`. No `next`, no `complete`. Scheduler delays the error notification.
+
+In plain terms, the operator keeps this memory: S = { idle, scheduled, stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, schedulerTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: throwError(() => new Error('x')) writes error(Error('x')) on subscribe.
+
+Details that a marble diagram often leaves out: Instance form is deprecated because the same error object would be shared across subscriptions. Does not complete.
+
 ## Role in the notification machine
 
 Subscribe calls the error factory and writes `error`. No `next`, no `complete`. Scheduler delays the error notification.

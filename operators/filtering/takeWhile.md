@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`takeWhile` is a pipeable operator on the RxJS 7.x line. Stable. Emit while `predicate(value, index)` is true. The first false value completes the output. If `inclusive`, that failing value is emitted before complete. Unsubscribes when the predicate fails.
+
+In plain terms, the operator keeps this memory: S = { taking(i), stopped }. At subscription, before any source notification, that memory is taking(0). It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: takeWhile(x => x < 3) on 1 2 3 4 writes next(1) next(2) complete. Inclusive also writes next(3) before complete.
+
+Details that a marble diagram often leaves out: Index increments per source next while taking. Inclusive flag is a parameter of `G`, not an extra state.
+
 ## Role in the notification machine
 
 Emit while `predicate(value, index)` is true. The first false value completes the output. If `inclusive`, that failing value is emitted before complete. Unsubscribes when the predicate fails.

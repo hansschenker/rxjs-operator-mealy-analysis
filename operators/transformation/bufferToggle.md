@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`bufferToggle` is a pipeable operator on the RxJS 7.x line. Stable. `openings` emits start signals. Each opening subscribes to `closingSelector(openingValue)`. Source values are copied into every buffer opened and not yet closed. A closing emission emits that buffer and drops it.
+
+In plain terms, the operator keeps this memory: S = { list of { buf, closingSub }, stopped }. At subscription, before any source notification, that memory is No open buffers. It reacts to these events: { next(v), error, complete, opening(o), openingError, closing_i, closingError_i, closingComplete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Opening at value 1, values 1 2, closing, writes next([1, 2]). Values that arrive with no open buffer are dropped.
+
+Details that a marble diagram often leaves out: Source complete does not emit partial buffers. Multiple openings can overlap.
+
 ## Role in the notification machine
 
 `openings` emits start signals. Each opening subscribes to `closingSelector(openingValue)`. Source values are copied into every buffer opened and not yet closed. A closing emission emits that buffer and drops it.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`skipUntil` is a pipeable operator on the RxJS 7.x line. Stable. Drop source values until `notifier` emits once. Then unsubscribe the notifier and mirror the source. Notifier error is an error. Notifier complete without a next leaves the machine skipping forever until the source ends.
+
+In plain terms, the operator keeps this memory: S = { skipping, forwarding, stopped }. At subscription, before any source notification, that memory is skipping. It reacts to these events: { next(v), error, complete, notifierNext, notifierError, notifierComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Source values before a click are dropped; the click itself is not emitted; later source values pass.
+
+Details that a marble diagram often leaves out: Notifier value is ignored, only its arrival matters. Source complete while still skipping writes `complete` with no values.
+
 ## Role in the notification machine
 
 Drop source values until `notifier` emits once. Then unsubscribe the notifier and mirror the source. Notifier error is an error. Notifier complete without a next leaves the machine skipping forever until the source ends.

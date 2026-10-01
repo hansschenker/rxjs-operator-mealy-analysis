@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`mergeMap` is a pipeable higher-order operator on the RxJS 7.x line. Stable. `resultSelector` deprecated. Also known as `flatMap`. Project each outer value to an inner and subscribe immediately up to `concurrent`. Further outers queue. Forward inner nexts as they arrive, interleaved. Complete when outer is done, queue is empty, and no inner is active.
+
+In plain terms, the operator keeps this memory: S = { active count, queue, outerDone, stopped }. At subscription, before any source notification, that memory is Active 0, empty queue, outer not done. It reacts to these events: Higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2).pipe(mergeMap(x => of(x, x))) writes four nexts, possibly interleaved if inners were async. With of they subscribe sequentially but both are allowed.
+
+Details that a marble diagram often leaves out: `concurrent: 1` reduces to `concatMap`. `flatMap.ts` is a deprecated alias.
+
 ## Role in the notification machine
 
 Project each outer value to an inner and subscribe immediately up to `concurrent`. Further outers queue. Forward inner nexts as they arrive, interleaved. Complete when outer is done, queue is empty, and no inner is active.

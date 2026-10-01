@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`switchMapTo` is a pipeable higher-order operator on the RxJS 7.x line. Deprecated. Use `switchMap(() => inner)`. `switchMap` whose project ignores the outer value and resubscribes to the same inner observable.
+
+In plain terms, the operator keeps this memory: Same as switchMap. At subscription, before any source notification, that memory is No inner. It reacts to these events: Same higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: clicks.pipe(switchMapTo(interval(1000))) restarts the interval on every click; only the latest interval emits.
+
+Details that a marble diagram often leaves out: Resubscribe, not a shared subscription. Deprecated.
+
 ## Role in the notification machine
 
 `switchMap` whose project ignores the outer value and resubscribes to the same inner observable.

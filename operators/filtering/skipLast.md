@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`skipLast` is a pipeable operator on the RxJS 7.x line. Stable. Hold a ring buffer of `count` values. Once the buffer is full, each new value emits the oldest and pushes the new one. The last `count` values are never emitted. Complete does not flush them.
+
+In plain terms, the operator keeps this memory: S = { buffer (queue of length ≤ count), stopped }. At subscription, before any source notification, that memory is Empty queue. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: skipLast(2) on 1 2 3 4 5 writes next(1) next(2) next(3) complete. 4 and 5 stay buffered.
+
+Details that a marble diagram often leaves out: `count <= 0` forwards everything. Must observe complete or unsubscribe to know the tail; it cannot emit the tail earlier.
+
 ## Role in the notification machine
 
 Hold a ring buffer of `count` values. Once the buffer is full, each new value emits the oldest and pushes the new one. The last `count` values are never emitted. Complete does not flush them.

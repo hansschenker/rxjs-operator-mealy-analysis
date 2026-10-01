@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`refCount` is a connectable adapter on the RxJS 7.x line. Deprecated. Use `share`. For a ConnectableObservable, the first subscriber calls `connect()`, further subscribers increment a count, and the last unsubscribe disconnects. Late subscribers do not replay unless the underlying subject does.
+
+In plain terms, the operator keeps this memory: { refCount, connection | ⊥, stopped }. At subscription, before any source notification, that memory is refCount 0, no connection. It reacts to these events: { subscriberJoin, subscriberLeave, sourceNext, sourceError, sourceComplete }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two subscribers share one connection. When both leave, the source is unsubscribed.
+
+Details that a marble diagram often leaves out: Deprecated in favor of `share`. Disconnect does not reset a sticky subject error by itself.
+
 ## Role in the notification machine
 
 For a ConnectableObservable, the first subscriber calls `connect()`, further subscribers increment a count, and the last unsubscribe disconnects. Late subscribers do not replay unless the underlying subject does.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`sequenceEqual` is a pipeable comparison on the RxJS 7.x line. Stable. Compare the source to `compareTo` index by index, like zip plus an equality check. Emit `false` and complete on the first mismatch or if the lengths differ. Emit `true` and complete if both complete with equal paired values. Comparator defaults to `===`.
+
+In plain terms, the operator keeps this memory: Two queues plus done flags, or stopped. Buffers values that arrive before their pair. At subscription, before any source notification, that memory is Empty queues, neither done. It reacts to these events: { next_source, next_other, error_either, complete_source, complete_other, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2).pipe(sequenceEqual(of(1, 2))) writes next(true) complete. Against of(1, 3) it writes next(false) complete at the second pair.
+
+Details that a marble diagram often leaves out: Uses a comparator, not deep equality. Errors from either side are forwarded.
+
 ## Role in the notification machine
 
 Compare the source to `compareTo` index by index, like zip plus an equality check. Emit `false` and complete on the first mismatch or if the lengths differ. Emit `true` and complete if both complete with equal paired values. Comparator defaults to `===`.

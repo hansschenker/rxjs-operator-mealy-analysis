@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`bufferCount` is a pipeable operator on the RxJS 7.x line. Stable. Maintain a list of open buffers. Every `startBufferEvery` source values, open a new buffer. A buffer emits and closes when it reaches `bufferSize`. Default `startBufferEvery = bufferSize` is non-overlapping. On complete, emit every non-empty open buffer then complete.
+
+In plain terms, the operator keeps this memory: S = { buffers: T[][], count since last open, stopped }. At subscription, before any source notification, that memory is One empty buffer, count 0, unless bufferSize < 1 which errors. It reacts to these events: { next(v), error(e), complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: bufferCount(3, 1) on a b c d emits [a,b,c], then [b,c,d], and on complete the trailing partials [c,d] and [d].
+
+Details that a marble diagram often leaves out: `bufferSize < 1` errors on subscribe. `startBufferEvery` smaller than `bufferSize` creates overlapping buffers.
+
 ## Role in the notification machine
 
 Maintain a list of open buffers. Every `startBufferEvery` source values, open a new buffer. A buffer emits and closes when it reaches `bufferSize`. Default `startBufferEvery = bufferSize` is non-overlapping. On complete, emit every non-empty open buffer then complete.

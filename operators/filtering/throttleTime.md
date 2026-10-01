@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`throttleTime` is a pipeable operator on the RxJS 7.x line. Stable. `throttle` with a timer duration. Default leading edge: emit, then ignore for `duration`. Config can enable trailing emit at the end of the window.
+
+In plain terms, the operator keeps this memory: S = { idle, throttling(pending | ⊥), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { next(v), error, complete, tick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: throttleTime(1000) on a burst emits the first value and suppresses the rest until the timer fires.
+
+Details that a marble diagram often leaves out: Default config is leading only. Scheduler defaults to asyncScheduler.
+
 ## Role in the notification machine
 
 `throttle` with a timer duration. Default leading edge: emit, then ignore for `duration`. Config can enable trailing emit at the end of the window.

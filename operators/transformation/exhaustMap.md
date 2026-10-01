@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`exhaustMap` is a pipeable higher-order operator on the RxJS 7.x line. Stable. `resultSelector` deprecated. Project outer values to inners, but only subscribe when no inner is active. Outer values that arrive while busy are ignored, not queued. This is `exhaust` plus a projection.
+
+In plain terms, the operator keeps this memory: S = { idle, busy, stopped } with outerDone. At subscription, before any source notification, that memory is idle. It reacts to these events: Higher-order alphabet; outerNext(v) carries the value passed to project.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: clicks.pipe(exhaustMap(() => interval(1000).pipe(take(3)))) ignores clicks until the current three ticks finish.
+
+Details that a marble diagram often leaves out: No queue. Contrast `concatMap`, which would buffer the ignored clicks. Result selector can still see the outer value that was accepted.
+
 ## Role in the notification machine
 
 Project outer values to inners, but only subscribe when no inner is active. Outer values that arrive while busy are ignored, not queued. This is `exhaust` plus a projection.

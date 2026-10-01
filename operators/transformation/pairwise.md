@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`pairwise` is a pipeable operator on the RxJS 7.x line. Stable. Remember the previous value. The first next only stores. From the second next on, emit `[previous, current]` and shift memory. Complete and error pass through. A single-value source completes with no emission.
+
+In plain terms, the operator keeps this memory: S = { empty, holding(prev), stopped }. At subscription, before any source notification, that memory is empty. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2, 3).pipe(pairwise()) writes next([1, 2]) next([2, 3]) complete.
+
+Details that a marble diagram often leaves out: No emission on complete for a dangling first value. Pairs overlap by one.
+
 ## Role in the notification machine
 
 Remember the previous value. The first next only stores. From the second next on, emit `[previous, current]` and shift memory. Complete and error pass through. A single-value source completes with no emission.

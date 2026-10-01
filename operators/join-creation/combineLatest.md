@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`combineLatest` is a join creation function on the RxJS 7.x line. Stable as a creation function. The pipeable form on 7.x is `combineLatestWith` / `combineLatestAll`. `resultSelector` deprecated. Subscribe to every source. Remember the latest value of each. Emit an array (or projected tuple) only once every source has produced at least one value, and again whenever any source emits after that. Complete when every source has completed. Error if any source errors. A source that completes without a value prevents any emission and completes the output when all have settled without a full tuple.
+
+In plain terms, the operator keeps this memory: S = records of { latest: V | ⊥, done: bool } per source, plus stopped. Infinite because values are arbitrary. Control flag ready = ∀ latest ≠ ⊥. At subscription, before any source notification, that memory is All latest = ⊥, all done = false. It reacts to these events: { subscribe, next_i(v), error_i(e), complete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Sources A: 1, 2 and B: a. After 1 the word is ε (B missing). After a the word is next([1, a]). After 2 the word is next([2, a]).
+
+Details that a marble diagram often leaves out: Dictionary form uses keys instead of indexes; the tuple shape changes, the machine does not. Empty source list completes immediately. Completion of a source that already has a latest does not emit by itself.
+
 ## Role in the notification machine
 
 Subscribe to every source. Remember the latest value of each. Emit an array (or projected tuple) only once every source has produced at least one value, and again whenever any source emits after that. Complete when every source has completed. Error if any source errors. A source that completes without a value prevents any emission and completes the output when all have settled without a full tuple.

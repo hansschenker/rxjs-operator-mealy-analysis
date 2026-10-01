@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`timestamp` is a pipeable operator on the RxJS 7.x line. Stable. Emit `{ value, timestamp }` using the provider's now. No memory between values.
+
+In plain terms, the operator keeps this memory: S = { active, stopped }. At subscription, before any source notification, that memory is active. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Each click becomes a timestamped value. The timestamp is the arrival time, not a delta.
+
+Details that a marble diagram often leaves out: Provider is injectable so tests can fake time. Does not delay.
+
 ## Role in the notification machine
 
 Emit `{ value, timestamp }` using the provider's now. No memory between values.

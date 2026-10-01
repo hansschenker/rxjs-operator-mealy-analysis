@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`generate` is a cold synchronous or scheduled generator on the RxJS 7.x line. Stable. Also accepts a `GenerateOptions` object. `resultSelector` form is the older overload. `generate` is already a state loop. Subscription seeds `state`, then while `condition(state)` holds it emits `resultSelector(state)` and replaces state with `iterate(state)`. Completion is the condition failing. A scheduler turns each step into a scheduled input rather than a synchronous loop.
+
+In plain terms, the operator keeps this memory: S = { idle, running(state), stopped }. state is the generator state, an arbitrary value, so S is infinite in general. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, step, unsubscribe }. Without a scheduler, step is the recursive continuation of subscribe.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: generate(1, s => s <= 3, s => s+1) writes next(1) next(2) next(3) complete. States visited: running(1), running(2), running(3), stopped.
+
+Details that a marble diagram often leaves out: Options form (`initialState`, `condition`, `iterate`, `resultSelector`, `scheduler`) matches the tuple above. An infinite condition never writes `complete` unless unsubscribed.
+
 ## Role in the notification machine
 
 `generate` is already a state loop. Subscription seeds `state`, then while `condition(state)` holds it emits `resultSelector(state)` and replaces state with `iterate(state)`. Completion is the condition failing. A scheduler turns each step into a scheduled input rather than a synchronous loop.

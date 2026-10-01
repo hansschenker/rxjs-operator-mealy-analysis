@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`using` is a resource factory on the RxJS 7.x line. Stable. Subscribe calls `resourceFactory()`, then `observableFactory(resource)`, and subscribes to that result. Unsubscribe or terminal disposes the resource. A factory throw errors the subscription and still disposes if the resource was created.
+
+In plain terms, the operator keeps this memory: { idle, forwarding(resource), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A resource opened on subscribe is closed when the inner completes or the consumer unsubscribes, even if no value was emitted.
+
+Details that a marble diagram often leaves out: Resource factory runs per subscription. Disposal is tied to the subscription, not to garbage collection.
+
 ## Role in the notification machine
 
 Subscribe calls `resourceFactory()`, then `observableFactory(resource)`, and subscribes to that result. Unsubscribe or terminal disposes the resource. A factory throw errors the subscription and still disposes if the resource was created.

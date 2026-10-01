@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`webSocket` is a subject-like socket factory on the RxJS 7.x line. Stable. Returns a WebSocketSubject. The first subscriber opens the socket. Incoming messages are nexts to all subscribers. `next` on the subject sends a frame. Complete closes the socket. Error from the socket errors subscribers. The last unsubscribe closes it. Config can multiplex by a subMsg/unsubMsg protocol.
+
+In plain terms, the operator keeps this memory: { closed, opening, open(refCount), stopped }. Outgoing queue exists while opening. At subscription, before any source notification, that memory is closed. It reacts to these events: { subscriberJoin, subscriberLeave, send(v), socketMessage, socketError, socketClose, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two subscribers share one socket. A message writes one next to each. The last unsubscribe closes the socket.
+
+Details that a marble diagram often leaves out: Deserializer and serializer are config parameters of G. Multiplex uses subMsg on join and unsubMsg on leave. Not under `src/internal/operators`; it is a DOM creation subject.
+
 ## Role in the notification machine
 
 Returns a WebSocketSubject. The first subscriber opens the socket. Incoming messages are nexts to all subscribers. `next` on the subject sends a frame. Complete closes the socket. Error from the socket errors subscribers. The last unsubscribe closes it. Config can multiplex by a subMsg/unsubMsg protocol.

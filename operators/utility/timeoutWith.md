@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`timeoutWith` is a pipeable operator on the RxJS 7.x line. Deprecated. Use `timeout({ each, with })`. Numeric timeout that switches to `withObservable` instead of erroring. Same waiting-timer machine as `timeout` with a replacement branch.
+
+In plain terms, the operator keeps this memory: S = { waiting, switched, stopped }. At subscription, before any source notification, that memory is waiting. It reacts to these events: { next, error, complete, timeoutTick, innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A silent source and timeoutWith(1000, of('fallback')) writes next('fallback') complete.
+
+Details that a marble diagram often leaves out: Deprecated. Scheduler defaults to async.
+
 ## Role in the notification machine
 
 Numeric timeout that switches to `withObservable` instead of erroring. Same waiting-timer machine as `timeout` with a replacement branch.

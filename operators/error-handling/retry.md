@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`retry` is a pipeable operator on the RxJS 7.x line. Stable. 7.x accepts a number or `{ count, delay, resetOnSuccess }`. On source error, resubscribe if retries remain. `count` is the number of resubscriptions (Infinity by default in the config object path; the numeric shorthand is the retry count). `delay` can be a duration or a notifier of the error. `resetOnSuccess` clears the attempt counter after a successful next. Complete passes through and does not retry.
+
+In plain terms, the operator keeps this memory: S = { forwarding(attempt), waitingDelay, stopped }. At subscription, before any source notification, that memory is forwarding(0). It reacts to these events: { next, error, complete, delayTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A source that errors twice with retry(1) writes the first attempt's nexts, suppresses the first error, resubscribes, then forwards the second error.
+
+Details that a marble diagram often leaves out: Count Infinity retries forever. Delay notifier error becomes the output error and stops retries. `resetOnSuccess` changes the counter transition on next.
+
 ## Role in the notification machine
 
 On source error, resubscribe if retries remain. `count` is the number of resubscriptions (Infinity by default in the config object path; the numeric shorthand is the retry count). `delay` can be a duration or a notifier of the error. `resetOnSuccess` clears the attempt counter after a successful next. Complete passes through and does not retry.

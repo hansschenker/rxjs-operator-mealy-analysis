@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`sample` is a pipeable operator on the RxJS 7.x line. Stable. Remember the latest source value. When `notifier` emits, emit that latest value if one arrived since the previous sample, then clear the pending flag. Notifier emissions with no fresh value write `ε`.
+
+In plain terms, the operator keeps this memory: S = { none, fresh(v), stopped }. At subscription, before any source notification, that memory is none. It reacts to these events: { next(v), error, complete, notifierNext, notifierError, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Value 1, notifier, value 2, value 3, notifier writes next(1) next(3).
+
+Details that a marble diagram often leaves out: No flush on source complete. Notifier error is an error output.
+
 ## Role in the notification machine
 
 Remember the latest source value. When `notifier` emits, emit that latest value if one arrived since the previous sample, then clear the pending flag. Notifier emissions with no fresh value write `ε`.

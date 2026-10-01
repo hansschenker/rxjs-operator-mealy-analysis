@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`switchScan` is a pipeable higher-order accumulator on the RxJS 7.x line. Stable. Like `mergeScan` with switch semantics. A new outer value unsubscribes the active accumulator inner and subscribes to `accumulator(latestAcc, value)`. Inner emissions update `acc` and are forwarded.
+
+In plain terms, the operator keeps this memory: S = { acc, active inner | ⊥, outerDone, stopped }. At subscription, before any source notification, that memory is acc = seed, no inner. It reacts to these events: Higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A fast outer with a slow accumulator inner: only the latest accumulation survives; previous inner nexts stop.
+
+Details that a marble diagram often leaves out: Seed is required and not emitted up front. Unsubscribed inner emissions are not outputs.
+
 ## Role in the notification machine
 
 Like `mergeScan` with switch semantics. A new outer value unsubscribes the active accumulator inner and subscribes to `accumulator(latestAcc, value)`. Inner emissions update `acc` and are forwarded.

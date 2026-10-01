@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`debounce` is a pipeable operator on the RxJS 7.x line. Stable. Each source next unsubscribes the previous duration and subscribes to `durationSelector(value)`, storing the value. When that duration emits, emit the stored value. A newer source next cancels the previous duration. Source complete emits the pending value if any, then completes.
+
+In plain terms, the operator keeps this memory: S = { idle, pending(v, duration), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { next(v), error, complete, durationNext, durationError, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Values 1, 2, 3 each restarting the duration, then a quiet duration next, writes next(3) only.
+
+Details that a marble diagram often leaves out: Duration selector sees the latest value. Complete flushes.
+
 ## Role in the notification machine
 
 Each source next unsubscribes the previous duration and subscribes to `durationSelector(value)`, storing the value. When that duration emits, emit the stored value. A newer source next cancels the previous duration. Source complete emits the pending value if any, then completes.

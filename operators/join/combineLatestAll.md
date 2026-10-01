@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`combineLatestAll` is a pipeable higher-order join on the RxJS 7.x line. Stable. Successor of deprecated `combineAll`. Collect the inners emitted by the source. When the source completes, combineLatest those inners: emit when each has a latest, then on any inner next. If the source completes with no inners, complete without a next.
+
+In plain terms, the operator keeps this memory: S = { collected inners, outerDone, latest per inner, stopped }. At subscription, before any source notification, that memory is No inners. It reacts to these events: { outerNext(inner$), outerComplete, outerError, innerNext_i, innerError_i, innerComplete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Source emits two inners then completes. First combined next appears only after both inners have emitted.
+
+Details that a marble diagram often leaves out: Inners that arrive after outer complete are not expected; outer complete closes collection. Empty higher-order source completes.
+
 ## Role in the notification machine
 
 Collect the inners emitted by the source. When the source completes, combineLatest those inners: emit when each has a latest, then on any inner next. If the source completes with no inners, complete without a next.

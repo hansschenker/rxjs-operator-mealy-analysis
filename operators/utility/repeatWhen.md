@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`repeatWhen` is a deprecated notifier resubscribe on the RxJS 7.x line. Deprecated. Use `repeat({ delay })`. On source complete, push a notification into a subject and resubscribe when `notifier` emits. Notifier error or complete ends the output. Source error is forwarded and does not repeat.
+
+In plain terms, the operator keeps this memory: { forwarding, waiting, stopped }. At subscription, before any source notification, that memory is forwarding, notifier subscribed. It reacts to these events: { next, error, complete, notifierNext, notifierError, notifierComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A notifier that emits once causes the source to be subscribed twice. The first complete is not written downstream.
+
+Details that a marble diagram often leaves out: Notifier is subscribed once. Deprecated.
+
 ## Role in the notification machine
 
 On source complete, push a notification into a subject and resubscribe when `notifier` emits. Notifier error or complete ends the output. Source error is forwarded and does not repeat.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`concatMapTo` is a pipeable higher-order operator on the RxJS 7.x line. Deprecated in 7.x. Use `concatMap(() => inner)`. Identical machine to `concatMap` except `project` ignores the outer value and returns the same `ObservableInput` each time. The input is still subscribed per outer value, not shared.
+
+In plain terms, the operator keeps this memory: Same as concatMap: { active, queue, outerDone, stopped }. At subscription, before any source notification, that memory is Idle, empty queue. It reacts to these events: Same higher-order alphabet as concatMap.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2).pipe(concatMapTo(of('x'))) writes next('x') next('x') complete.
+
+Details that a marble diagram often leaves out: The same observable object is resubscribed; it is not merged concurrently. Cold inners rerun. A hot inner would share its timeline per subscription rules.
+
 ## Role in the notification machine
 
 Identical machine to `concatMap` except `project` ignores the outer value and returns the same `ObservableInput` each time. The input is still subscribed per outer value, not shared.

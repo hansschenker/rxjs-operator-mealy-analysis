@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`observeOn` is a pipeable operator on the RxJS 7.x line. Stable. Schedule each next, error, and complete on `scheduler`. Order is preserved by the scheduler queue. Delay shifts each scheduled action.
+
+In plain terms, the operator keeps this memory: S = { queue of scheduled notifications, stopped }. At subscription, before any source notification, that memory is Empty queue. It reacts to these events: { next, error, complete, scheduledFire, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2).pipe(observeOn(asyncScheduler)) writes next(1) next(2) complete on a later turn, not inside the synchronous subscribe.
+
+Details that a marble diagram often leaves out: Unlike `delay`, error is also scheduled. Delay 0 still leaves the current stack if the scheduler is async.
+
 ## Role in the notification machine
 
 Schedule each next, error, and complete on `scheduler`. Order is preserved by the scheduler queue. Delay shifts each scheduled action.

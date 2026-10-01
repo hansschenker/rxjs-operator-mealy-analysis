@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`publishBehavior` is a pipeable connectable operator on the RxJS 7.x line. Deprecated. BehaviorSubject-backed multicast. Like `publish`, but the subject is a `BehaviorSubject(value)`. Every new subscriber synchronously receives the current value, which starts as `value` even before connect.
+
+In plain terms, the operator keeps this memory: S = { disconnected(current), connected(current), stopped }. At subscription, before any source notification, that memory is disconnected(initialValue). It reacts to these events: multicast alphabet plus the behavior current value.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: publishBehavior(0) subscriber before connect still gets next(0). After connect and source 1, subscribers get next(1).
+
+Details that a marble diagram often leaves out: Initial value is emitted even if the source never emits. Deprecated.
+
 ## Role in the notification machine
 
 Like `publish`, but the subject is a `BehaviorSubject(value)`. Every new subscriber synchronously receives the current value, which starts as `value` even before connect.

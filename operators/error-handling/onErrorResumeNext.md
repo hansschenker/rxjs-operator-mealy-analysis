@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`onErrorResumeNext` is a join creation function on the RxJS 7.x line. Stable. Creation form of `onErrorResumeNextWith`. Subscribe to the first source. On its error or complete, subscribe to the next. Swallow errors. Complete after the last source completes.
+
+In plain terms, the operator keeps this memory: { reading(i), stopped }. At subscription, before any source notification, that memory is reading(0). It reacts to these events: { innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: onErrorResumeNext(throwError(() => 'x'), of(1)) writes next(1) complete.
+
+Details that a marble diagram often leaves out: Same continuation rule as the pipeable `onErrorResumeNextWith`. A source that completes also continues.
+
 ## Role in the notification machine
 
 Creation form of `onErrorResumeNextWith`. Subscribe to the first source. On its error or complete, subscribe to the next. Swallow errors. Complete after the last source completes.

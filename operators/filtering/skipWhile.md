@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`skipWhile` is a pipeable operator on the RxJS 7.x line. Stable. Drop values while `predicate` is true. The first value that fails the predicate, and everything after it, is emitted. The predicate is not consulted again after that.
+
+In plain terms, the operator keeps this memory: S = { skipping(i), forwarding, stopped }. At subscription, before any source notification, that memory is skipping(0). It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: skipWhile(x => x < 3) on 1 2 3 1 writes next(3) next(1) complete. The later 1 passes.
+
+Details that a marble diagram often leaves out: Index increments only while skipping. Once forwarding, predicate throws cannot happen because it is not called.
+
 ## Role in the notification machine
 
 Drop values while `predicate` is true. The first value that fails the predicate, and everything after it, is emitted. The predicate is not consulted again after that.

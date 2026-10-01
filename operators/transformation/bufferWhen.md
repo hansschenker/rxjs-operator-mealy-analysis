@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`bufferWhen` is a pipeable operator on the RxJS 7.x line. Stable. One buffer is open. Subscribe to `closingSelector()` immediately. When that notifier emits, emit the buffer, open a new one, and subscribe to a fresh closer. Notifier complete also closes. Source complete emits the open buffer and completes.
+
+In plain terms, the operator keeps this memory: S = { open(buf), stopped }. At subscription, before any source notification, that memory is open([]) with the first closer subscribed. It reacts to these events: { next(v), error, complete, closeNext, closeError, closeComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A closer that emits twice produces two arrays covering the values between those signals, then arms a third buffer.
+
+Details that a marble diagram often leaves out: `closingSelector` is invoked per buffer, not once. A throw from the selector is an error output.
+
 ## Role in the notification machine
 
 One buffer is open. Subscribe to `closingSelector()` immediately. When that notifier emits, emit the buffer, open a new one, and subscribe to a fresh closer. Notifier complete also closes. Source complete emits the open buffer and completes.

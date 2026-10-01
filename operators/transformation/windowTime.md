@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`windowTime` is a pipeable operator on the RxJS 7.x line. Stable. Window analogue of `bufferTime`. Span timers close windows; optional creation interval opens extra windows; optional max size closes early.
+
+In plain terms, the operator keeps this memory: S = { open windows with timers, stopped }. At subscription, before any source notification, that memory is First window open and emitted. It reacts to these events: { next(v), error, complete, spanTick, creationTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: windowTime(1000) emits a new window observable every second and completes the previous one, even if it saw no values.
+
+Details that a marble diagram often leaves out: Empty windows are still emitted and completed. Scheduler owns the ticks.
+
 ## Role in the notification machine
 
 Window analogue of `bufferTime`. Span timers close windows; optional creation interval opens extra windows; optional max size closes early.

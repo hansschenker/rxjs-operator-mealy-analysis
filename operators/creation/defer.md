@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`defer` is a cold factory on the RxJS 7.x line. Stable. `defer` has almost no memory of its own. Subscription evaluates the factory and subscribes to whatever `ObservableInput` comes back. Subsequent notifications are forwarded verbatim. A factory throw is an error on that subscription only.
+
+In plain terms, the operator keeps this memory: S = { idle, forwarding, stopped }. forwarding means the inner subscription is live. The factory result is not stored as a value cache. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, innerNext(v), innerError(e), innerComplete, unsubscribe }. Factory failure is folded into subscribe.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two subscribers call the factory twice. Each machine starts at idle. There is no shared inner.
+
+Details that a marble diagram often leaves out: The factory runs per subscription. That is the whole point versus `of(factory())` evaluated early. Returned promises, iterables, and arrays are normalized by `from` semantics inside subscribe.
+
 ## Role in the notification machine
 
 `defer` has almost no memory of its own. Subscription evaluates the factory and subscribes to whatever `ObservableInput` comes back. Subsequent notifications are forwarded verbatim. A factory throw is an error on that subscription only.

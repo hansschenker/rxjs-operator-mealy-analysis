@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`empty` is a cold creation function / constant on the RxJS 7.x line. Deprecated on 7.x in favor of the `EMPTY` constant. Still present. The machine emits no values. Subscribe writes `complete` and stops. An optional scheduler only delays that single complete notification; it does not add values.
+
+In plain terms, the operator keeps this memory: S = { idle, scheduled, stopped }. Without a scheduler, scheduled is skipped. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, schedulerTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: empty().subscribe(observer) produces the word complete and nothing else.
+
+Details that a marble diagram often leaves out: `EMPTY` is the same machine with no scheduler argument. Deprecated status does not change the tuple.
+
 ## Role in the notification machine
 
 The machine emits no values. Subscribe writes `complete` and stops. An optional scheduler only delays that single complete notification; it does not add values.

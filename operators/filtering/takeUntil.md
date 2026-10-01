@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`takeUntil` is a pipeable operator on the RxJS 7.x line. Stable. Mirror the source until `notifier` emits or completes. Then complete and unsubscribe the source. Notifier error is an error. The notifier value is not emitted.
+
+In plain terms, the operator keeps this memory: S = { forwarding, stopped }. At subscription, before any source notification, that memory is forwarding with notifier subscribed. It reacts to these events: { next(v), error, complete, notifierNext, notifierComplete, notifierError, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Interval taken until a click writes the interval values so far, then complete, and unsubscribes the interval.
+
+Details that a marble diagram often leaves out: Notifier complete also stops the output. If the notifier emits synchronously on subscribe, the source may be unsubscribed immediately.
+
 ## Role in the notification machine
 
 Mirror the source until `notifier` emits or completes. Then complete and unsubscribe the source. Notifier error is an error. The notifier value is not emitted.

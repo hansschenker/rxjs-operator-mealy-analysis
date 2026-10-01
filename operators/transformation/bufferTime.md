@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`bufferTime` is a pipeable operator on the RxJS 7.x line. Stable. Open a buffer and emit it when `bufferTimeSpan` elapses. Optional `bufferCreationInterval` opens additional buffers on a cadence (overlapping windows). Optional `maxBufferSize` closes a buffer early when it fills. Scheduler defaults to async.
+
+In plain terms, the operator keeps this memory: S = { open buffers with their close times, stopped }. At subscription, before any source notification, that memory is One open buffer armed to close after bufferTimeSpan. It reacts to these events: { next(v), error, complete, spanTick(id), creationTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: bufferTime(1000) over values inside one second emits one array per second, including empty arrays when a span had no values.
+
+Details that a marble diagram often leaves out: Empty time spans still emit `[]`. Creation interval plus span is the overlapping form.
+
 ## Role in the notification machine
 
 Open a buffer and emit it when `bufferTimeSpan` elapses. Optional `bufferCreationInterval` opens additional buffers on a cadence (overlapping windows). Optional `maxBufferSize` closes a buffer early when it fills. Scheduler defaults to async.

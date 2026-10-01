@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`fromFetch` is a cold fetch producer on the RxJS 7.x line. Stable. Subscribe calls `fetch`. The Response is a single next, then complete. Unsubscribe aborts via AbortController. A fetch rejection is an error. The body is not read unless the caller reads the Response.
+
+In plain terms, the operator keeps this memory: { idle, inflight(controller), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, resolve(response), reject(error), unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A successful fetch writes next(response) complete. Unsubscribing before resolve aborts and writes nothing.
+
+Details that a marble diagram often leaves out: Selector overload can project the Response to another observable; that projection is then flattened. Cold: one fetch per subscription.
+
 ## Role in the notification machine
 
 Subscribe calls `fetch`. The Response is a single next, then complete. Unsubscribe aborts via AbortController. A fetch rejection is an error. The body is not read unless the caller reads the Response.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`publishLast` is a pipeable connectable operator on the RxJS 7.x line. Deprecated. AsyncSubject-backed multicast. Subject is an `AsyncSubject`. It emits only the last source value, and only when the source completes, to current and late subscribers. Error is sticky.
+
+In plain terms, the operator keeps this memory: S = { disconnected, connected(last | ⊥), stopped(last | error) }. At subscription, before any source notification, that memory is disconnected, no last. It reacts to these events: multicast alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Source 1, 2, complete after connect writes next(2) complete to subscribers. The 1 is overwritten.
+
+Details that a marble diagram often leaves out: No value before complete. Deprecated.
+
 ## Role in the notification machine
 
 Subject is an `AsyncSubject`. It emits only the last source value, and only when the source completes, to current and late subscribers. Error is sticky.

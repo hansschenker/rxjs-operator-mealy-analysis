@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`endWith` is a pipeable suffix on the RxJS 7.x line. Stable. Forward the source. On source complete, emit the given suffix values and then complete. An error skips the suffix. A scheduler shifts the suffix.
+
+In plain terms, the operator keeps this memory: { forwarding, suffix(i), stopped }. At subscription, before any source notification, that memory is forwarding. It reacts to these events: { next, error, complete, suffixStep, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1).pipe(endWith(2, 3)) writes next(1) next(2) next(3) complete.
+
+Details that a marble diagram often leaves out: Suffix is not emitted if the source errors. A scheduler argument is not a suffix value.
+
 ## Role in the notification machine
 
 Forward the source. On source complete, emit the given suffix values and then complete. An error skips the suffix. A scheduler shifts the suffix.

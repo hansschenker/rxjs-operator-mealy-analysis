@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`pairs` is a deprecated object enumerator on the RxJS 7.x line. Deprecated. Use `from(Object.entries(obj))`. On subscribe, enumerate own enumerable keys of `obj` and emit `[key, value]` pairs, then complete. Scheduler spreads the emissions.
+
+In plain terms, the operator keeps this memory: { pending(i), stopped } over the entry list captured at subscribe. At subscription, before any source notification, that memory is pending(0) after the entry list is built. It reacts to these events: { subscribe, step, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: pairs({ a: 1, b: 2 }) writes next(['a', 1]) next(['b', 2]) complete in enumeration order.
+
+Details that a marble diagram often leaves out: Deprecated. Entries are read at subscribe, not when `pairs` is called, so a mutated object is seen per subscription.
+
 ## Role in the notification machine
 
 On subscribe, enumerate own enumerable keys of `obj` and emit `[key, value]` pairs, then complete. Scheduler spreads the emissions.

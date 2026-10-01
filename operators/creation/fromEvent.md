@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`fromEvent` is a hot-source adapter, cold registration on the RxJS 7.x line. Stable. `resultSelector` deprecated. Subscribe registers a listener on `target` (`addEventListener`, `on`, or a compatible method). Each event is a `next`. There is no natural complete. Unsubscribe removes the listener. Optional `options` (capture, passive, once) are registration parameters.
+
+In plain terms, the operator keeps this memory: S = { idle, listening, stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, event(e), unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: fromEvent(el, 'click'): subscribe arms the listener; three clicks write next next next; unsubscribe removes the handler and writes ε.
+
+Details that a marble diagram often leaves out: jQuery-style and Node `EventEmitter` targets are detected by method shape. `once: true` in options can move `listening → stopped` after the first event, and `G` still writes that one `next`. Two subscribers register two listeners unless the caller shares.
+
 ## Role in the notification machine
 
 Subscribe registers a listener on `target` (`addEventListener`, `on`, or a compatible method). Each event is a `next`. There is no natural complete. Unsubscribe removes the listener. Optional `options` (capture, passive, once) are registration parameters.

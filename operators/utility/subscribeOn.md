@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`subscribeOn` is a pipeable operator on the RxJS 7.x line. Stable. Schedule the act of subscribing to the source. After that, notifications are forwarded directly (no extra observe queue). Unsubscribe before the scheduled subscribe cancels it.
+
+In plain terms, the operator keeps this memory: S = { scheduled, forwarding, stopped }. At subscription, before any source notification, that memory is scheduled. It reacts to these events: { subscribe, schedulerTick, sourceNext, sourceError, sourceComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A synchronous of(1) under subscribeOn(asyncScheduler) does not emit inside the caller stack; it emits when the scheduler runs the subscription.
+
+Details that a marble diagram often leaves out: Does not move notifications onto the scheduler; pair with `observeOn` for that. Delay delays the subscription, not each value.
+
 ## Role in the notification machine
 
 Schedule the act of subscribing to the source. After that, notifications are forwarded directly (no extra observe queue). Unsubscribe before the scheduled subscribe cancels it.

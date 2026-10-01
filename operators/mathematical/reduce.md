@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`reduce` is a pipeable operator on the RxJS 7.x line. Stable. Fold the source. Emit the final accumulator on complete only. With a seed, empty source emits the seed. Without a seed, empty source errors `EmptyError`, and the first value becomes the initial acc without calling the accumulator.
+
+In plain terms, the operator keeps this memory: S = { needSeed, holding(acc, i), stopped }. At subscription, before any source notification, that memory is holding(seed, 0) if seed given, else needSeed. It reacts to these events: { next, error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2, 3).pipe(reduce((a, b) => a + b, 0)) writes next(6) complete and nothing earlier. scan would have written the intermediates.
+
+Details that a marble diagram often leaves out: Seed is emitted on empty complete. No seed plus one value emits that value on complete without calling the accumulator.
+
 ## Role in the notification machine
 
 Fold the source. Emit the final accumulator on complete only. With a seed, empty source emits the seed. Without a seed, empty source errors `EmptyError`, and the first value becomes the initial acc without calling the accumulator.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`partition` is a splitting function, not a pipeable operator on the RxJS 7.x line. Stable function. Listed by the docs under both join creation and transformation. Not used inside `pipe`. `partition` returns two observables: values for which `predicate` is true, and values for which it is false. On 7.x it is implemented as two `filter` subscriptions, not as one shared multicast. A cold source therefore runs twice, once per branch, unless the caller `share`s it first. The Mealy model below is the logical splitter; the source note records the double subscription.
+
+In plain terms, the operator keeps this memory: Logical splitter: S = { active(i), stopped } with i the source index passed to the predicate. Implementation: two independent filter machines. At subscription, before any source notification, that memory is active(0) per branch subscription. It reacts to these events: { next(v), error(e), complete, unsubscribe } on each subscription.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: partition(of(1,2,3), x => x % 2) yields pass word next(1) next(3) complete and fail word next(2) complete, but of is subscribed twice.
+
+Details that a marble diagram often leaves out: Not a single subscription. Side-effecting sources run per branch. Index is the index in that branch's subscription, which coincide only if both are subscribed and the source is deterministic. `thisArg` is deprecated style.
+
 ## Role in the notification machine
 
 `partition` returns two observables: values for which `predicate` is true, and values for which it is false. On 7.x it is implemented as two `filter` subscriptions, not as one shared multicast. A cold source therefore runs twice, once per branch, unless the caller `share`s it first. The Mealy model below is the logical splitter; the source note records the double subscription.

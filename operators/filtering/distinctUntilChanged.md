@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`distinctUntilChanged` is a pipeable operator on the RxJS 7.x line. Stable. Emit when the current key is not equal to the previous key. Comparator defaults to `===`. Only the last key is stored, not the full history.
+
+In plain terms, the operator keeps this memory: S = { empty, holding(key), stopped }. At subscription, before any source notification, that memory is empty. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: 1, 1, 2, 2, 1 writes next(1) next(2) next(1). The last 1 passes because it differs from 2.
+
+Details that a marble diagram often leaves out: First value always passes. Comparator receives keys after `keySelector`.
+
 ## Role in the notification machine
 
 Emit when the current key is not equal to the previous key. Comparator defaults to `===`. Only the last key is stored, not the full history.

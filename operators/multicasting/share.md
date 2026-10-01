@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`share` is a pipeable refcounted multicast on the RxJS 7.x line. Stable. Preferred multicast on 7.x. Refcounted multicast. First subscriber connects via `connector()` (default `() => new Subject()`). Further subscribers join that subject. Defaults: `resetOnError: true`, `resetOnComplete: true`, `resetOnRefCountZero: true`, so the machine returns to cold when the source terminates or the last subscriber leaves. Each reset flag may be a boolean or a notifier factory.
+
+In plain terms, the operator keeps this memory: S = { cold, hot(subject, refCount), resetting, stopped }. At subscription, before any source notification, that memory is cold. It reacts to these events: { subscriberJoin, subscriberLeave, sourceNext, sourceError, sourceComplete, resetTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two subscribers share one interval. Both unsubscribe: default share tears down and the next subscriber starts a fresh interval at 0.
+
+Details that a marble diagram often leaves out: `resetOnError: false` makes a late subscriber receive the sticky error. `shareReplay` is share with a ReplaySubject connector and different reset defaults. Config notifiers delay the reset transition.
+
 ## Role in the notification machine
 
 Refcounted multicast. First subscriber connects via `connector()` (default `() => new Subject()`). Further subscribers join that subject. Defaults: `resetOnError: true`, `resetOnComplete: true`, `resetOnRefCountZero: true`, so the machine returns to cold when the source terminates or the last subscriber leaves. Each reset flag may be a boolean or a notifier factory.

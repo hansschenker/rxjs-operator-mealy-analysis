@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`combineLatestWith` is a pipeable join on the RxJS 7.x line. Stable. Pipeable replacement for the old `combineLatest` operator signature. Subscribe to the source and to each other source. Remember the latest of each. Emit a tuple only after every participant has a value, then on every subsequent next from any of them. Complete when all complete. Error if any errors.
+
+In plain terms, the operator keeps this memory: Per-source { latest: V | ⊥, done } plus stopped. Index 0 is the piped source. At subscription, before any source notification, that memory is All latest ⊥, none done. It reacts to these events: { next_i, error_i, complete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Source emits 1 before the other emits: ε. Other emits a: next([1, a]). Source emits 2: next([2, a]).
+
+Details that a marble diagram often leaves out: Equivalent to `combineLatest([source, ...others])` after subscription. Does not emit on complete by itself.
+
 ## Role in the notification machine
 
 Subscribe to the source and to each other source. Remember the latest of each. Emit a tuple only after every participant has a value, then on every subsequent next from any of them. Complete when all complete. Error if any errors.

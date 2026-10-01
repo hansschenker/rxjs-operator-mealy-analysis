@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`switchMap` is a pipeable higher-order operator on the RxJS 7.x line. Stable. `resultSelector` deprecated. Project each outer value to an inner and subscribe, unsubscribing any previous inner. Only the latest inner can emit. Complete when outer is done and the latest inner is done (or none is active).
+
+In plain terms, the operator keeps this memory: S = { active inner | ⊥, outerDone, stopped }. At subscription, before any source notification, that memory is No inner, outer not done. It reacts to these events: Higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Search box: each keystroke switches the request inner. A slow response for an old key does not emit.
+
+Details that a marble diagram often leaves out: No queue. Previous inners are cancelled, not exhausted. Project throw errors immediately.
+
 ## Role in the notification machine
 
 Project each outer value to an inner and subscribe, unsubscribing any previous inner. Only the latest inner can emit. Complete when outer is done and the latest inner is done (or none is active).

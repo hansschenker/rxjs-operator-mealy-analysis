@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`flatMap` is a deprecated alias on the RxJS 7.x line. Deprecated alias of `mergeMap`. `flatMap.ts` re-exports `mergeMap`. Concurrency defaults to Infinity. Inners are subscribed as outer values arrive, up to the limit, and their nexts are interleaved.
+
+In plain terms, the operator keeps this memory: Same as mergeMap: active count, queue, outerDone, stopped. At subscription, before any source notification, that memory is Active 0, empty queue. It reacts to these events: Higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Same word as mergeMap on the same projection.
+
+Details that a marble diagram often leaves out: File is a re-export. Prefer `mergeMap`.
+
 ## Role in the notification machine
 
 `flatMap.ts` re-exports `mergeMap`. Concurrency defaults to Infinity. Inners are subscribed as outer values arrive, up to the limit, and their nexts are interleaved.

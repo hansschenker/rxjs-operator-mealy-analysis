@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`range` is a cold numeric producer on the RxJS 7.x line. Stable. Subscribe emits `count` integers beginning at `start`, then completes. `count` defaults to `undefined` in older signatures but the 7.x form is `range(start, count?)`. Zero or negative count completes without values.
+
+In plain terms, the operator keeps this memory: S = { pending(k) | 0 ≤ k ≤ count } ∪ { stopped }. At subscription, before any source notification, that memory is pending(0). It reacts to these events: { subscribe, step, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: range(2, 3) writes next(2) next(3) next(4) complete.
+
+Details that a marble diagram often leaves out: `count <= 0` writes `complete` only. Scheduler spreads the word; it does not change it.
+
 ## Role in the notification machine
 
 Subscribe emits `count` integers beginning at `start`, then completes. `count` defaults to `undefined` in older signatures but the 7.x form is `range(start, count?)`. Zero or negative count completes without values.

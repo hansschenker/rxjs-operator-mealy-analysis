@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`mergeWith` is a pipeable join on the RxJS 7.x line. Stable. Subscribe to the source and the other sources together and forward whichever next arrives. Complete when all complete. Error on the first error. Concurrency is unbounded.
+
+In plain terms, the operator keeps this memory: Active set and completed count, or stopped. At subscription, before any source notification, that memory is All sources subscribed, completed count 0. It reacts to these events: { next_i, error_i, complete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1).pipe(mergeWith(of(2))) writes both values, order following synchronous subscription order, then complete.
+
+Details that a marble diagram often leaves out: Equivalent to `merge(source, ...others)`. No concurrency argument on this signature.
+
 ## Role in the notification machine
 
 Subscribe to the source and the other sources together and forward whichever next arrives. Complete when all complete. Error on the first error. Concurrency is unbounded.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`throwIfEmpty` is a pipeable guard on the RxJS 7.x line. Stable. Forward nexts. If the source completes without a next, error with the factory result (EmptyError by default) instead of completing. One seen-flag of memory.
+
+In plain terms, the operator keeps this memory: { empty, seen, stopped }. At subscription, before any source notification, that memory is empty. It reacts to these events: { next, error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: EMPTY.pipe(throwIfEmpty()) writes error(EmptyError). of(1).pipe(throwIfEmpty()) writes next(1) complete.
+
+Details that a marble diagram often leaves out: Factory runs only on the empty-complete path. Used internally by operators that must reject an empty source.
+
 ## Role in the notification machine
 
 Forward nexts. If the source completes without a next, error with the factory result (EmptyError by default) instead of completing. One seen-flag of memory.

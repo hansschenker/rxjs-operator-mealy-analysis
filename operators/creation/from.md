@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`from` is a cold conversion function on the RxJS 7.x line. Stable. `from` adapts an `ObservableInput` into an Observable. Arrays and array-likes are enumerated; iterables are pulled; promises become a single next+complete or an error; an existing Observable is subscribed and forwarded; async iterables are pulled until return. The scheduler, if any, spreads synchronous emissions.
+
+In plain terms, the operator keeps this memory: S = { idle, pulling(cursor), awaiting(promise | asyncIterator), forwarding, stopped }. The cursor is the iteration state. Promise and async-iterator waits are distinct only in how the next input is produced. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, yield(v), yieldDone, reject(e), innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: from([10, 20]): subscribe, yield(10), yield(20), yieldDone writes next(10) next(20) complete.
+
+Details that a marble diagram often leaves out: A string is an iterable of characters. Readable-stream style async iterables must be closed on unsubscribe. Scheduler does not change the word, only when its letters are delivered.
+
 ## Role in the notification machine
 
 `from` adapts an `ObservableInput` into an Observable. Arrays and array-likes are enumerated; iterables are pulled; promises become a single next+complete or an error; an existing Observable is subscribed and forwarded; async iterables are pulled until return. The scheduler, if any, spreads synchronous emissions.

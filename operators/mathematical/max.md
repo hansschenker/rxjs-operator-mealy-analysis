@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`max` is a pipeable operator on the RxJS 7.x line. Stable. Reduce with a greater-than comparer. Emit the max on complete. Empty source errors with `EmptyError`. Comparer defaults to numeric `>`.
+
+In plain terms, the operator keeps this memory: S = { empty, holding(max), stopped }. At subscription, before any source notification, that memory is empty. It reacts to these events: { next, error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(3, 1, 2).pipe(max()) writes next(3) complete.
+
+Details that a marble diagram often leaves out: Empty errors. Comparer throw is an error. Implemented as a reduce.
+
 ## Role in the notification machine
 
 Reduce with a greater-than comparer. Emit the max on complete. Empty source errors with `EmptyError`. Comparer defaults to numeric `>`.

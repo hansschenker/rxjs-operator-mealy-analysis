@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`delayWhen` is a pipeable operator on the RxJS 7.x line. Stable. Each source next subscribes to `delayDurationSelector(value, index)` and emits the value when that duration emits. Complete waits until every outstanding delay has emitted. Error is immediate. Optional `subscriptionDelay` delays the subscription to the source itself.
+
+In plain terms, the operator keeps this memory: S = { delaying set of (value, durationSub), sourceDone, stopped }. At subscription, before any source notification, that memory is Empty set. Source not yet subscribed if subscriptionDelay is set. It reacts to these events: { next(v), error, complete, durationNext_i, durationError_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two values with different duration selectors can emit out of source order.
+
+Details that a marble diagram often leaves out: Duration selector throw is an error. Subscription delay is an extra initial wait state.
+
 ## Role in the notification machine
 
 Each source next subscribes to `delayDurationSelector(value, index)` and emits the value when that duration emits. Complete waits until every outstanding delay has emitted. Error is immediate. Optional `subscriptionDelay` delays the subscription to the source itself.

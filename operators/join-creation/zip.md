@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`zip` is a join creation function on the RxJS 7.x line. Stable. `resultSelector` deprecated. Pair values by index. Each source has a queue. When every queue is non-empty, shift one value from each and emit the tuple. Complete when any source completes and its queue cannot form another tuple. Error on any error.
+
+In plain terms, the operator keeps this memory: S = per-source queue (sequence of V) plus done flags, or stopped. Queues make S infinite. At subscription, before any source notification, that memory is Empty queues, no source done. It reacts to these events: { subscribe, next_i(v), error_i, complete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: zip(of(1, 2), of('a')) writes next([1, 'a']) complete. The 2 stays queued and is dropped when the shorter source completes.
+
+Details that a marble diagram often leaves out: Unlike `combineLatest`, values are consumed, not reused. A result selector projects the tuple inside `G` only.
+
 ## Role in the notification machine
 
 Pair values by index. Each source has a queue. When every queue is non-empty, shift one value from each and emit the tuple. Complete when any source completes and its queue cannot form another tuple. Error on any error.

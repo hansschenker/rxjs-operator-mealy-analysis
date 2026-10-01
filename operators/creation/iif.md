@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`iif` is a cold conditional factory on the RxJS 7.x line. Stable. Subscribe evaluates `condition()` and subscribes to either the true or the false observable. Missing branch is `EMPTY` (immediate complete). After the choice, the machine is a forwarder. The condition is not re-checked.
+
+In plain terms, the operator keeps this memory: S = { idle, forwarding(branch), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: iif(() => flag, of(1), of(2)) with flag = true writes next(1) complete and never subscribes to of(2).
+
+Details that a marble diagram often leaves out: Condition runs per subscription. Default branch completes empty.
+
 ## Role in the notification machine
 
 Subscribe evaluates `condition()` and subscribes to either the true or the false observable. Missing branch is `EMPTY` (immediate complete). After the choice, the machine is a forwarder. The condition is not re-checked.

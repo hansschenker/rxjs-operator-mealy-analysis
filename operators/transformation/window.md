@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`window` is a pipeable operator on the RxJS 7.x line. Stable. Emit a window observable immediately, forward source values into it, and on each boundary notifier next complete that window and emit a new one. Source complete completes the open window and the outer.
+
+In plain terms, the operator keeps this memory: S = { open window subject, stopped }. At subscription, before any source notification, that memory is A first window already emitted on subscribe. It reacts to these events: { subscribe, next(v), error, complete, boundaryNext, boundaryError, boundaryComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two boundary signals around values 1, 2 then 3 produce two window observables, the first emitting 1 and 2, the second emitting 3.
+
+Details that a marble diagram often leaves out: Windows are Subjects; late subscribers miss past values of that window. Boundary complete completes the current window and the outer.
+
 ## Role in the notification machine
 
 Emit a window observable immediately, forward source values into it, and on each boundary notifier next complete that window and emit a new one. Source complete completes the open window and the outer.

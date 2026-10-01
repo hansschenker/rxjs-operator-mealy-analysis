@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`dematerialize` is a pipeable operator on the RxJS 7.x line. Stable. Inverse of `materialize`. A next-notification becomes `next(value)`. An error-notification becomes `error`. A complete-notification becomes `complete`. The machine stops on those terminal notifications.
+
+In plain terms, the operator keeps this memory: S = { active, stopped }. At subscription, before any source notification, that memory is active. It reacts to these events: { next(Notification), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Materialized next(1), next(complete) dematerializes to next(1) complete.
+
+Details that a marble diagram often leaves out: A real complete on the source completes without synthesizing an extra value. Expects Notification objects; other values are an error in practice.
+
 ## Role in the notification machine
 
 Inverse of `materialize`. A next-notification becomes `next(value)`. An error-notification becomes `error`. A complete-notification becomes `complete`. The machine stops on those terminal notifications.

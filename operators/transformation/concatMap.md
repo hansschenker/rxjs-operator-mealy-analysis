@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`concatMap` is a pipeable higher-order operator on the RxJS 7.x line. Stable. `resultSelector` deprecated. Project each source value to an inner observable and flatten with concurrency 1. Later source values wait in a queue until the active inner completes. Inner and outer errors fail the output. Complete when the outer is done and the queue and active inner are empty.
+
+In plain terms, the operator keeps this memory: S = { active inner | ⊥, queue of outer values, outerDone, stopped }. At subscription, before any source notification, that memory is No active inner, empty queue, outer not done. It reacts to these events: { outerNext(v), outerError, outerComplete, innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Outer 1, 2 with project x => of(x, x) writes next(1) next(1) next(2) next(2). The second inner cannot start before the first completes.
+
+Details that a marble diagram often leaves out: Concurrency is fixed at 1. That is the only difference from `mergeMap` in `mergeInternals`. Project throw → error, queue discarded.
+
 ## Role in the notification machine
 
 Project each source value to an inner observable and flatten with concurrency 1. Later source values wait in a queue until the active inner completes. Inner and outer errors fail the output. Complete when the outer is done and the queue and active inner are empty.

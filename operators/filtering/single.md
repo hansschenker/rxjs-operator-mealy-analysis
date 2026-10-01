@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`single` is a pipeable operator on the RxJS 7.x line. Stable. Expect exactly one matching value. Remember it. A second match errors with `SequenceError`. On complete, emit the one match. No match or complete-without-match errors `EmptyError` unless the implementation's empty path applies. Unsubscribes on the second match.
+
+In plain terms, the operator keeps this memory: S = { none, one(v), stopped }. At subscription, before any source notification, that memory is none. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(2).pipe(single()) writes next(2) complete. of(2, 4).pipe(single()) writes error(SequenceError).
+
+Details that a marble diagram often leaves out: Predicate narrows what counts as a match. Non-matching values are ignored.
+
 ## Role in the notification machine
 
 Expect exactly one matching value. Remember it. A second match errors with `SequenceError`. On complete, emit the one match. No match or complete-without-match errors `EmptyError` unless the implementation's empty path applies. Unsubscribes on the second match.

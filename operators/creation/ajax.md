@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`ajax` is a cold creation function (HTTP producer) on the RxJS 7.x line. Stable in 7.x. Config object is the supported form; string URL is shorthand. `ajax` does not transform an upstream. Subscription is the start event: it opens one XMLHttpRequest / fetch-equivalent, and cancellation aborts it. The machine is cold — every subscriber builds its own request from `AjaxConfig` (or from a string URL coerced into a config). Progress events are optional `next` outputs when `includeDownloadProgress` / upload progress is configured; the terminal success value is a single `AjaxResponse`. A non-2xx status is an error notification (`AjaxError`), not a next, unless `includeDownloadProgress` handling says otherwise for progress frames.
+
+In plain terms, the operator keeps this memory: S = { idle, opened(request), stopped }. opened remembers the in-flight request handle so unsubscribe can abort it. There is no value memory: the response is not accumulated inside the machine beyond the XHR buffer owned by the host. At subscription, before any source notification, that memory is idle. No request exists before subscribe. It reacts to these events: { subscribe, progress(p), load(response), fail(error), unsubscribe }. progress is absent unless the config asks for it. load is the host success signal; fail covers network failure, abort, timeout, and HTTP error statuses mapped to AjaxError.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: subscribe → opened; host load → output next(response) · complete, state stopped. A second subscriber is a fresh machine in idle, not a replay.
+
+Details that a marble diagram often leaves out: Unsubscribe aborts; a late `load` after abort must not emit (the stopped state drops it). Each subscription creates its own XHR. `ajax` is not multicast. Query serialization, headers, cross-domain, and `responseType` are config parameters of the machine, not extra states.
+
 ## Role in the notification machine
 
 `ajax` does not transform an upstream. Subscription is the start event: it opens one XMLHttpRequest / fetch-equivalent, and cancellation aborts it. The machine is cold — every subscriber builds its own request from `AjaxConfig` (or from a string URL coerced into a config). Progress events are optional `next` outputs when `includeDownloadProgress` / upload progress is configured; the terminal success value is a single `AjaxResponse`. A non-2xx status is an error notification (`AjaxError`), not a next, unless `includeDownloadProgress` handling says otherwise for progress frames.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`expand` is a pipeable recursive higher-order operator on the RxJS 7.x line. Stable. Emit the source value, and also subscribe to `project(value)` whose emissions are emitted and recursively expanded. `concurrent` bounds active inners. It is `mergeMap` with feedback of outputs into the project function. No implicit complete until the source and every recursive inner complete.
+
+In plain terms, the operator keeps this memory: S = { active count, queue of values still to expand, outerDone, stopped }. At subscription, before any source notification, that memory is Active 0, empty queue. It reacts to these events: { outerNext(v), outerError, outerComplete, innerNext(v), innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1).pipe(expand(x => x < 3 ? of(x+1) : EMPTY)) writes next(1) next(2) next(3) complete.
+
+Details that a marble diagram often leaves out: `concurrent: 1` serializes recursion and can change interleaving, not the set of values for a pure project. Scheduler shifts recursive subscribes.
+
 ## Role in the notification machine
 
 Emit the source value, and also subscribe to `project(value)` whose emissions are emitted and recursively expanded. `concurrent` bounds active inners. It is `mergeMap` with feedback of outputs into the project function. No implicit complete until the source and every recursive inner complete.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`mergeScan` is a pipeable higher-order accumulator on the RxJS 7.x line. Stable. Like `scan`, but the accumulator returns an observable. Seed is the initial acc. Each outer value starts `accumulator(acc, value)` and the inner's emissions are both outputs and the latest acc. Concurrency defaults to Infinity. Complete when outer is done and inners are idle.
+
+In plain terms, the operator keeps this memory: S = { acc, active, queue, outerDone, stopped }. At subscription, before any source notification, that memory is acc = seed, active 0, empty queue. It reacts to these events: Higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 1).pipe(mergeScan((acc, v) => of(acc + v), 0)) writes next(1) next(2) complete when serialized by the accumulator dependency.
+
+Details that a marble diagram often leaves out: High concurrency can start accumulators with a stale acc if the implementation does not serialize the seed read. 7.x `mergeScan` uses `mergeInternals` and passes the latest acc when the inner is subscribed; overlapping inners can still interleave emissions. Seed is required.
+
 ## Role in the notification machine
 
 Like `scan`, but the accumulator returns an observable. Seed is the initial acc. Each outer value starts `accumulator(acc, value)` and the inner's emissions are both outputs and the latest acc. Concurrency defaults to Infinity. Complete when outer is done and inners are idle.

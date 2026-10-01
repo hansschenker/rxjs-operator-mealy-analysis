@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`bindNodeCallback` is a cold creation function (Node error-first adapter) on the RxJS 7.x line. Stable. `resultSelector` deprecated. Same adapter shape as `bindCallback`, but the callback is Node-style `(err, ...results)`. A truthy first argument is an error output and there is no `next`. A null/undefined error yields `next` of the remaining args (a single result unwrapped, several results as an array) and then `complete`.
+
+In plain terms, the operator keeps this memory: S = { idle, waiting, stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe(args), callback(err, results), unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Subscribe to bindNodeCallback(fs.readFile)(path). Callback (null, buf) writes next(buf) · complete. Callback (enoent, _) writes error(enoent) and stops.
+
+Details that a marble diagram often leaves out: Only the first callback counts. A falsy error (`null`/`undefined`) is success. A truthy error short-circuits results.
+
 ## Role in the notification machine
 
 Same adapter shape as `bindCallback`, but the callback is Node-style `(err, ...results)`. A truthy first argument is an error output and there is no `next`. A null/undefined error yields `next` of the remaining args (a single result unwrapped, several results as an array) and then `complete`.

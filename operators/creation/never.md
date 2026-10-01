@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`never` is a cold constant that never terminates on the RxJS 7.x line. Stable. `NEVER` is the constant; `never()` is the creation function. Subscribe and then emit nothing, never complete, never error. Only unsubscribe leaves the machine.
+
+In plain terms, the operator keeps this memory: { idle, subscribed, stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A subscriber to NEVER receives no next, no error, and no complete until it unsubscribes.
+
+Details that a marble diagram often leaves out: Useful as a default notifier that never fires. Does not schedule anything.
+
 ## Role in the notification machine
 
 Subscribe and then emit nothing, never complete, never error. Only unsubscribe leaves the machine.

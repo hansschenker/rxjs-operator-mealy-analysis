@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`map` is a pipeable operator on the RxJS 7.x line. Stable. `thisArg` deprecated. On each source next, call `project(value, index)` and emit the result. Index starts at 0 and increments per source next. Error and complete pass through. A throw from `project` becomes an error notification.
+
+In plain terms, the operator keeps this memory: S = { active(i) | i ∈ ℕ } ∪ { stopped }. At subscription, before any source notification, that memory is active(0). It reacts to these events: { next(v), error(e), complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(10, 20).pipe(map((v, i) => v + i)) writes next(10) next(21) complete.
+
+Details that a marble diagram often leaves out: Index counts source emissions, not downstream subscribers. Errors from the source do not call `project`.
+
 ## Role in the notification machine
 
 On each source next, call `project(value, index)` and emit the result. Index starts at 0 and increments per source next. Error and complete pass through. A throw from `project` becomes an error notification.

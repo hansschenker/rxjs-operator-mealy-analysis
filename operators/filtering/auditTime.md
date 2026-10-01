@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`auditTime` is a pipeable operator on the RxJS 7.x line. Stable. `audit` with a timer duration. The first value in an idle period starts a timer and is not emitted yet. Values during the timer overwrite the pending value. Timer fire emits the latest and goes idle.
+
+In plain terms, the operator keeps this memory: S = { idle, auditing(latest), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { next(v), error, complete, tick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two values inside the duration and a tick write a single next of the second value.
+
+Details that a marble diagram often leaves out: Unlike `throttleTime`, this is trailing-edge. Complete flushes.
+
 ## Role in the notification machine
 
 `audit` with a timer duration. The first value in an idle period starts a timer and is not emitted yet. Values during the timer overwrite the pending value. Timer fire emits the latest and goes idle.

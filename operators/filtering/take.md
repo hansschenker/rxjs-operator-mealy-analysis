@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`take` is a pipeable operator on the RxJS 7.x line. Stable. Emit the first `count` source nexts and complete, unsubscribing from the source. `take(0)` completes immediately and does not subscribe to the source. A shorter source just completes.
+
+In plain terms, the operator keeps this memory: S = { counting(k), stopped } for 0 ≤ k ≤ count. At subscription, before any source notification, that memory is counting(0). It reacts to these events: { subscribe, next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: take(2) on a b c writes next(a) next(b) complete and cancels before c.
+
+Details that a marble diagram often leaves out: `count < 0` is treated as zero in 7.x and completes immediately. Unsubscribes on the completing next.
+
 ## Role in the notification machine
 
 Emit the first `count` source nexts and complete, unsubscribing from the source. `take(0)` completes immediately and does not subscribe to the source. A shorter source just completes.

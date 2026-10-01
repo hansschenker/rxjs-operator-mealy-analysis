@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`groupBy` is a pipeable operator on the RxJS 7.x line. Stable. Map each source value to a key. Emit a `GroupedObservable` the first time a key is seen. Later values for that key are nexted into the subject's group. `durationSelector`, if present, closes a group when its notifier emits. Source complete completes every open group and then the outer. Each group is its own small machine.
+
+In plain terms, the operator keeps this memory: S = { map key → { subject, open }, stopped }. Infinite key space possible. At subscription, before any source notification, that memory is Empty map. It reacts to these events: { next(v), error, complete, durationNext(k), durationError(k), unsubscribe } plus group-subscriber subscribe/unsubscribe (refcounts on the connector subject).
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Values {id:1}, {id:1}, {id:2} emit two group observables. The first group writes two elements; the second writes one.
+
+Details that a marble diagram often leaves out: Late subscribers to a group see only what the connector subject replays (`Subject` by default, so nothing already past). Duration complete also closes the group.
+
 ## Role in the notification machine
 
 Map each source value to a key. Emit a `GroupedObservable` the first time a key is seen. Later values for that key are nexted into the subject's group. `durationSelector`, if present, closes a group when its notifier emits. Source complete completes every open group and then the outer. Each group is its own small machine.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`animationFrames` is a scheduled DOM producer on the RxJS 7.x line. Stable. Subscribe schedules `requestAnimationFrame`. Each frame writes `{ timestamp, elapsed }` and schedules the next frame. Unsubscribe cancels the pending frame. No complete.
+
+In plain terms, the operator keeps this memory: { idle, framing(startTime), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, frame(timestamp), unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Three frames write three nexts whose elapsed values increase. Unsubscribe stops the loop.
+
+Details that a marble diagram often leaves out: Browser-only in the DOM build. Each subscriber has a private frame loop.
+
 ## Role in the notification machine
 
 Subscribe schedules `requestAnimationFrame`. Each frame writes `{ timestamp, elapsed }` and schedules the next frame. Unsubscribe cancels the pending frame. No complete.

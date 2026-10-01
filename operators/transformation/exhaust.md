@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`exhaust` is a pipeable higher-order operator on the RxJS 7.x line. Stable. Alias of `exhaustAll`. Source emits inners. If no inner is active, subscribe to the new inner and forward it. If an inner is active, drop the new inner without subscribing. Complete when the source is done and no inner is active.
+
+In plain terms, the operator keeps this memory: S = { idle, busy(inner), stopped } plus outerDone. At subscription, before any source notification, that memory is idle, outer not done. It reacts to these events: { outerNext(inner$), outerError, outerComplete, innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Clicks projected to 1-second inners: a click during an open inner produces no subscription and no output.
+
+Details that a marble diagram often leaves out: Dropped inners are never subscribed. Source file is a one-line alias to `exhaustAll`.
+
 ## Role in the notification machine
 
 Source emits inners. If no inner is active, subscribe to the new inner and forward it. If an inner is active, drop the new inner without subscribing. Complete when the source is done and no inner is active.

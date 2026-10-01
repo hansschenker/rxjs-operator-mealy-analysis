@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`connect` is a pipeable selector multicast on the RxJS 7.x line. Stable. The supported replacement for `multicast` with a selector. On subscribe, build a connector subject (default Subject), subscribe the selector's result, and connect the source into the subject for the lifetime of that subscription. `config.connector` picks the subject. There is no manual `connect()` call.
+
+In plain terms, the operator keeps this memory: { connecting(subject), stopped }. At subscription, before any source notification, that memory is Entered on subscribe by constructing the subject and calling the selector. It reacts to these events: { subscribe, sourceNext, sourceError, sourceComplete, selectorNext, selectorError, selectorComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: source.pipe(connect(shared => shared.pipe(take(2)))) shares one source subscription for the selector and completes when the selector completes, tearing down the connection.
+
+Details that a marble diagram often leaves out: One connection per subscriber to the result, unless the selector itself shares. Connector factory runs per subscribe.
+
 ## Role in the notification machine
 
 On subscribe, build a connector subject (default Subject), subscribe the selector's result, and connect the source into the subject for the lifetime of that subscription. `config.connector` picks the subject. There is no manual `connect()` call.

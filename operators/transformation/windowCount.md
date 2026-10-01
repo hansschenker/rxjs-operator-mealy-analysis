@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`windowCount` is a pipeable operator on the RxJS 7.x line. Stable. Window analogue of `bufferCount`. Open windows of `windowSize` source values, starting a new window every `startWindowEvery` values. Emit each window observable when it opens. Complete a window when it reaches `windowSize`.
+
+In plain terms, the operator keeps this memory: S = { list of open windows with their counts, source count, stopped }. At subscription, before any source notification, that memory is First window emitted, count 0. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: windowCount(2) on a b c d emits two windows: [a b] and [c d], each completed.
+
+Details that a marble diagram often leaves out: `startWindowEvery < windowSize` overlaps. `windowSize < 1` errors.
+
 ## Role in the notification machine
 
 Window analogue of `bufferCount`. Open windows of `windowSize` source values, starting a new window every `startWindowEvery` values. Emit each window observable when it opens. Complete a window when it reaches `windowSize`.

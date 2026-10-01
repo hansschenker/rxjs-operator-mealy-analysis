@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`startWith` is a pipeable operator on the RxJS 7.x line. Stable. On subscribe, emit the given values (via `concat(of(...values), source)` semantics) and then subscribe to the source and forward it. Scheduler shifts the prefix.
+
+In plain terms, the operator keeps this memory: S = { prefix(i), forwarding, stopped }. At subscription, before any source notification, that memory is prefix(0). It reacts to these events: { subscribe, step, sourceNext, sourceError, sourceComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(2, 3).pipe(startWith(1)) writes next(1) next(2) next(3) complete.
+
+Details that a marble diagram often leaves out: Values are emitted even if the source never emits. A scheduler argument is not a prefix value.
+
 ## Role in the notification machine
 
 On subscribe, emit the given values (via `concat(of(...values), source)` semantics) and then subscribe to the source and forward it. Scheduler shifts the prefix.

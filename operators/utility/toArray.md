@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`toArray` is a pipeable operator on the RxJS 7.x line. Stable. Buffer every source next. On complete, emit one array and complete. Error passes through and drops the buffer. Does not emit on an infinite source.
+
+In plain terms, the operator keeps this memory: S = { collecting(buf), stopped }. At subscription, before any source notification, that memory is collecting([]). It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2, 3).pipe(toArray()) writes next([1, 2, 3]) complete.
+
+Details that a marble diagram often leaves out: Empty source emits `next([]) complete`. Unbounded memory.
+
 ## Role in the notification machine
 
 Buffer every source next. On complete, emit one array and complete. Error passes through and drops the buffer. Does not emit on an infinite source.

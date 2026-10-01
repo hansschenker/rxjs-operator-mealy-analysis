@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`sampleTime` is a pipeable operator on the RxJS 7.x line. Stable. `sample` driven by a periodic scheduler instead of a notifier. Emits the latest value seen during the period, if any.
+
+In plain terms, the operator keeps this memory: S = { none, fresh(v), stopped }. At subscription, before any source notification, that memory is none. It reacts to these events: { next(v), error, complete, tick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Values inside a period collapse to one next on the tick, the last of them.
+
+Details that a marble diagram often leaves out: Period is scheduler time, not source count. Empty periods emit nothing.
+
 ## Role in the notification machine
 
 `sample` driven by a periodic scheduler instead of a notifier. Emits the latest value seen during the period, if any.

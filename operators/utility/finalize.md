@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`finalize` is a pipeable teardown on the RxJS 7.x line. Stable. Mirror every notification. Call `callback` once on unsubscribe, error, or complete — whichever ends the subscription first. The callback is not a notification. A throw from the callback is reported on teardown.
+
+In plain terms, the operator keeps this memory: { active, stopped }. A flag records that the callback has run. At subscription, before any source notification, that memory is active, callback not run. It reacts to these events: { next, error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A take(1) downstream unsubscribes after the first next; finalize runs on that unsubscribe, not on a later source complete.
+
+Details that a marble diagram often leaves out: Callback runs on unsubscribe even if the source has not terminated. It runs once, not per notification.
+
 ## Role in the notification machine
 
 Mirror every notification. Call `callback` once on unsubscribe, error, or complete — whichever ends the subscription first. The callback is not a notification. A throw from the callback is reported on teardown.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`mapTo` is a pipeable operator on the RxJS 7.x line. Deprecated in 7.x. Use `map(() => value)`. Replace every source next with the same constant. No index. Error and complete pass through.
+
+In plain terms, the operator keeps this memory: S = { active, stopped }. At subscription, before any source notification, that memory is active. It reacts to these events: { next(_), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2, 3).pipe(mapTo('x')) writes next('x') next('x') next('x') complete.
+
+Details that a marble diagram often leaves out: The constant is captured when `mapTo` is called, not per next. Deprecated, tuple unchanged.
+
 ## Role in the notification machine
 
 Replace every source next with the same constant. No index. Error and complete pass through.

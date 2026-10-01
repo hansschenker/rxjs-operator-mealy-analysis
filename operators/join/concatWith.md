@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`concatWith` is a pipeable join on the RxJS 7.x line. Stable. Forward the source to completion, then subscribe to each additional source in order. One active subscription. An error skips the rest.
+
+In plain terms, the operator keeps this memory: { reading(i) | 0 ≤ i ≤ n } ∪ { stopped }. i = 0 is the piped source. At subscription, before any source notification, that memory is reading(0). It reacts to these events: { innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1).pipe(concatWith(of(2, 3))) writes next(1) next(2) next(3) complete.
+
+Details that a marble diagram often leaves out: Later sources are not subscribed until earlier ones complete. Implemented as concat of the source plus the rest.
+
 ## Role in the notification machine
 
 Forward the source to completion, then subscribe to each additional source in order. One active subscription. An error skips the rest.

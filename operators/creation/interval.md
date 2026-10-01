@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`interval` is a cold scheduled producer on the RxJS 7.x line. Stable. Subscribe schedules a periodic action. The n-th tick writes `next(n)` starting at 0. There is no complete. Unsubscribe cancels the schedule.
+
+In plain terms, the operator keeps this memory: S = { idle, ticking(n), stopped } with n ∈ ℕ. Infinite state space, finite control. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, tick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: interval(1000) over three ticks writes next(0) next(1) next(2) and remains in ticking(3) until unsubscribe.
+
+Details that a marble diagram often leaves out: `period <= 0` still schedules; it does not emit synchronously in a loop on the async scheduler. Each subscriber has a private counter. `interval` is cold.
+
 ## Role in the notification machine
 
 Subscribe schedules a periodic action. The n-th tick writes `next(n)` starting at 0. There is no complete. Unsubscribe cancels the schedule.

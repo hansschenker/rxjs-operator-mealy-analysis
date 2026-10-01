@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`pluck` is a pipeable operator on the RxJS 7.x line. Deprecated. Use `map(x => x.a.b)`. Project each next through a path of property names. Missing segments yield `undefined`. Error and complete pass through.
+
+In plain terms, the operator keeps this memory: S = { active, stopped }. No index. At subscription, before any source notification, that memory is active. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: pluck('a', 'b') on {a:{b:1}} writes next(1). On {} writes next(undefined).
+
+Details that a marble diagram often leaves out: Does not throw on missing properties; it emits `undefined`. Deprecated.
+
 ## Role in the notification machine
 
 Project each next through a path of property names. Missing segments yield `undefined`. Error and complete pass through.

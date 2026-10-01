@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`elementAt` is a pipeable operator on the RxJS 7.x line. Stable. Emit the value at the given zero-based index and complete. If the source completes before that index, emit `defaultValue` if supplied, otherwise error with `ArgumentOutOfRangeError`.
+
+In plain terms, the operator keeps this memory: S = { counting(i), stopped } for 0 ≤ i ≤ index. At subscription, before any source notification, that memory is counting(0). It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: elementAt(1) on a b c writes next(b) complete and unsubscribes.
+
+Details that a marble diagram often leaves out: Negative index errors. Unsubscribes after the match so later source values are not pulled.
+
 ## Role in the notification machine
 
 Emit the value at the given zero-based index and complete. If the source completes before that index, emit `defaultValue` if supplied, otherwise error with `ArgumentOutOfRangeError`.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`last` is a pipeable operator on the RxJS 7.x line. Stable. Remember the latest matching value. On source complete, emit it and complete. If none matched, emit default or `EmptyError`. Must see complete; it cannot emit early.
+
+In plain terms, the operator keeps this memory: S = { seen(v) | empty, stopped }. At subscription, before any source notification, that memory is empty. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2, 3).pipe(last()) writes next(3) complete only after the source completes.
+
+Details that a marble diagram often leaves out: Does not unsubscribe early. Predicate optional.
+
 ## Role in the notification machine
 
 Remember the latest matching value. On source complete, emit it and complete. If none matched, emit default or `EmptyError`. Must see complete; it cannot emit early.

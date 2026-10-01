@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`takeLast` is a pipeable operator on the RxJS 7.x line. Stable. Buffer at most `count` values. On source complete, emit the buffer in order and complete. Error passes through without emitting the buffer.
+
+In plain terms, the operator keeps this memory: S = { buffer (ring of size ≤ count), stopped }. At subscription, before any source notification, that memory is Empty buffer. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: takeLast(2) on 1 2 3 4 writes next(3) next(4) complete after the source completes.
+
+Details that a marble diagram often leaves out: `count <= 0` completes with no values once the source completes. Must wait for complete, so it does not work on a non-completing source.
+
 ## Role in the notification machine
 
 Buffer at most `count` values. On source complete, emit the buffer in order and complete. Error passes through without emitting the buffer.

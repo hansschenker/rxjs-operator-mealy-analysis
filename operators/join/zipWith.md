@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`zipWith` is a pipeable join on the RxJS 7.x line. Stable. Zip the piped source with the other sources by index. Each side has a queue. Emit when every queue is non-empty, then shift one from each. Complete when any side completes and cannot form another tuple.
+
+In plain terms, the operator keeps this memory: Queue per source plus done flags, or stopped. At subscription, before any source notification, that memory is Empty queues. It reacts to these events: { next_i, error_i, complete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2).pipe(zipWith(of('a'))) writes next([1, 'a']) complete.
+
+Details that a marble diagram often leaves out: Values are consumed, not reused as in combineLatest. Same pairing rule as creation `zip`.
+
 ## Role in the notification machine
 
 Zip the piped source with the other sources by index. Each side has a queue. Emit when every queue is non-empty, then shift one from each. Complete when any side completes and cannot form another tuple.

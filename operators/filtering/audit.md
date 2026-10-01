@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`audit` is a pipeable operator on the RxJS 7.x line. Stable. On a source next, if no duration is open, subscribe to `durationSelector(value)` and remember the latest value. Further source nexts update the remembered value but do not restart the duration. When the duration emits, emit the latest value and become idle. Duration complete without a next also ends the audit window in 7.x and can emit. Source complete emits any pending value then completes.
+
+In plain terms, the operator keeps this memory: S = { idle, auditing(latest), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { next(v), error, complete, durationNext, durationComplete, durationError, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Values 1 then 2 while the duration is open, then duration next, writes next(2) once.
+
+Details that a marble diagram often leaves out: Trailing value is flushed on source complete. Duration error errors the output.
+
 ## Role in the notification machine
 
 On a source next, if no duration is open, subscribe to `durationSelector(value)` and remember the latest value. Further source nexts update the remembered value but do not restart the duration. When the duration emits, emit the latest value and become idle. Duration complete without a next also ends the audit window in 7.x and can emit. Source complete emits any pending value then completes.

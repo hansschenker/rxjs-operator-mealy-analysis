@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`bindCallback` is a cold creation function (callback adapter) on the RxJS 7.x line. Stable. `resultSelector` is deprecated and removed in later majors. `bindCallback` returns a function. Calling that function does not yet run the callback API; subscribing does. The machine appends its own callback, invokes `callbackFunc` once, and turns the callback arguments into one `next` followed by `complete`. Multiple callback arguments are packed into an array unless a (deprecated) result selector projects them.
+
+In plain terms, the operator keeps this memory: S = { idle, waiting, stopped }. waiting means the underlying function has been invoked and the callback has not fired. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe(args), callback(args), unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: bindCallback(fs.readFile)(path) stays cold until subscribe. Subscribe invokes readFile; the callback input writes next([errIgnoredOrData]) · complete and stops. (Node-style error-first is bindNodeCallback, not this operator.)
+
+Details that a marble diagram often leaves out: The callback is expected once. A second callback after `stopped` is dropped. Scheduler, if passed, shifts the `next·complete` word onto that scheduler; the state transition still happens when the callback fires. Result selector deprecation does not change the tuple shape, only the projection inside `G`.
+
 ## Role in the notification machine
 
 `bindCallback` returns a function. Calling that function does not yet run the callback API; subscribing does. The machine appends its own callback, invokes `callbackFunc` once, and turns the callback arguments into one `next` followed by `complete`. Multiple callback arguments are packed into an array unless a (deprecated) result selector projects them.

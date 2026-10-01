@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`catchError` is a pipeable operator on the RxJS 7.x line. Stable. Forward source nexts and complete. On source error, call `selector(error, caught)` and subscribe to the returned observable instead. If the selector returns `caught` (the source observable passed in), this resubscribes. Selector throw is an error. After the switch, the replacement's notifications are forwarded.
+
+In plain terms, the operator keeps this memory: S = { forwarding(source), forwarding(replacement), stopped }. At subscription, before any source notification, that memory is forwarding(source). It reacts to these events: { next, error, complete, replacementNext, replacementError, replacementComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Source errors, selector returns of(0), output writes the source nexts so far, then next(0) complete, and no error.
+
+Details that a marble diagram often leaves out: Returning `caught` is the retry-by-resubscribe pattern and can loop. Only errors are caught; complete is not a catch input.
+
 ## Role in the notification machine
 
 Forward source nexts and complete. On source error, call `selector(error, caught)` and subscribe to the returned observable instead. If the selector returns `caught` (the source observable passed in), this resubscribes. Selector throw is an error. After the switch, the replacement's notifications are forwarded.

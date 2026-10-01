@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`fromEventPattern` is a hot-source adapter with custom add/remove on the RxJS 7.x line. Stable. `resultSelector` deprecated. Generalization of `fromEvent` for APIs that are not DOM/EventEmitter. Subscribe calls `addHandler` with the machine's handler. Each handler call is `next`. Unsubscribe calls `removeHandler` with the same handler.
+
+In plain terms, the operator keeps this memory: S = { idle, listening, stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, handler(args), unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A custom bus: subscribe calls add, two handler fires write two nexts, unsubscribe calls remove.
+
+Details that a marble diagram often leaves out: `removeHandler` is optional in the type but required for a correct unsubscribe transition. Handler identity must be stable so remove matches add.
+
 ## Role in the notification machine
 
 Generalization of `fromEvent` for APIs that are not DOM/EventEmitter. Subscribe calls `addHandler` with the machine's handler. Each handler call is `next`. Unsubscribe calls `removeHandler` with the same handler.

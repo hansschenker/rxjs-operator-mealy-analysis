@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`shareReplay` is a pipeable replay multicast on the RxJS 7.x line. Stable. `share` with a ReplaySubject connector. On 7.x the implementation sets `resetOnError: true`, `resetOnComplete: false`, and `resetOnRefCountZero` from the `refCount` option (default false). So the replay buffer survives completion and, by default, survives the last subscriber leaving. New subscribers receive the buffered window.
+
+In plain terms, the operator keeps this memory: { cold, hot(buffer, refCount), stopped } with a ReplaySubject buffer. At subscription, before any source notification, that memory is cold, empty buffer. It reacts to these events: { subscriberJoin, subscriberLeave, sourceNext, sourceError, sourceComplete, resetTick }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: First subscriber sees 1, 2 and unsubscribes. A later subscriber still receives 1, 2 from the buffer if refCount is false and the source already produced them.
+
+Details that a marble diagram often leaves out: Default refCount false keeps the source subscribed. Config object form accepts bufferSize, windowTime, refCount, scheduler. Implemented via `share`.
+
 ## Role in the notification machine
 
 `share` with a ReplaySubject connector. On 7.x the implementation sets `resetOnError: true`, `resetOnComplete: false`, and `resetOnRefCountZero` from the `refCount` option (default false). So the replay buffer survives completion and, by default, survives the last subscriber leaving. New subscribers receive the buffered window.

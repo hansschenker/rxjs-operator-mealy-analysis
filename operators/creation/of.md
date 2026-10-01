@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`of` is a cold list producer on the RxJS 7.x line. Stable. Subscribe emits each captured argument in order and then completes. With a scheduler, each emission and the complete are scheduled actions. Arguments are captured when `of` is called, not when it is subscribed — unlike `defer`.
+
+In plain terms, the operator keeps this memory: S = { pending(i) | 0 ≤ i ≤ n } ∪ { stopped }. n is the argument count. pending(i) means the next argument to emit is index i. At subscription, before any source notification, that memory is pending(0). It reacts to these events: { subscribe, step, unsubscribe }. Synchronous path treats subscribe as the start of the step loop.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of('a','b') writes next('a') next('b') complete on subscribe.
+
+Details that a marble diagram often leaves out: A trailing scheduler argument is not a value. `of()` writes only `complete`.
+
 ## Role in the notification machine
 
 Subscribe emits each captured argument in order and then completes. With a scheduler, each emission and the complete are scheduled actions. Arguments are captured when `of` is called, not when it is subscribed — unlike `defer`.

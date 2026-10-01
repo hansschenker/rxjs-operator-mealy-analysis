@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`publishReplay` is a pipeable connectable operator on the RxJS 7.x line. Deprecated. ReplaySubject-backed multicast. ConnectableObservable over a `ReplaySubject(bufferSize, windowTime)`. Subscribers receive the buffered window on join, then live values after connect.
+
+In plain terms, the operator keeps this memory: S = { disconnected(buffer), connected(buffer), stopped }. Buffer is a bounded queue. At subscription, before any source notification, that memory is disconnected(empty buffer). It reacts to these events: multicast alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Connect, emit 1 then 2, late subscriber joins: late subscriber gets next(1) next(2) from the buffer if bufferSize allows.
+
+Details that a marble diagram often leaves out: Does not refCount unless composed with `refCount`. Deprecated in favor of `share({ connector: () => new ReplaySubject(...) })`.
+
 ## Role in the notification machine
 
 ConnectableObservable over a `ReplaySubject(bufferSize, windowTime)`. Subscribers receive the buffered window on join, then live values after connect.

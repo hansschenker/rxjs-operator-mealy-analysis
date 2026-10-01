@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`mergeAll` is a pipeable higher-order join on the RxJS 7.x line. Stable. Subscribe to inners as the source emits them, up to `concurrent`, and forward their values as they arrive. Extra inners queue.
+
+In plain terms, the operator keeps this memory: S = { active count, queue, outerDone, stopped }. At subscription, before any source notification, that memory is Active 0, empty queue. It reacts to these events: Higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two delayed inners can interleave their nexts on the output.
+
+Details that a marble diagram often leaves out: `mergeAll(1)` matches `concatAll`. Implemented through `mergeInternals`.
+
 ## Role in the notification machine
 
 Subscribe to inners as the source emits them, up to `concurrent`, and forward their values as they arrive. Extra inners queue.

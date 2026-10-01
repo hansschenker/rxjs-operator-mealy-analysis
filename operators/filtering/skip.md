@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`skip` is a pipeable operator on the RxJS 7.x line. Stable. Drop the first `count` source nexts, then mirror the source. Error and complete always pass through.
+
+In plain terms, the operator keeps this memory: S = { skipping(k), forwarding, stopped } for 0 ≤ k ≤ count. At subscription, before any source notification, that memory is skipping(0) if count > 0, else forwarding. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: skip(2) on a b c d writes next(c) next(d) complete.
+
+Details that a marble diagram often leaves out: `skip(0)` is identity. Does not unsubscribe; it only drops.
+
 ## Role in the notification machine
 
 Drop the first `count` source nexts, then mirror the source. Error and complete always pass through.

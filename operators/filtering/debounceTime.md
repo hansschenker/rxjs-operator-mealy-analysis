@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`debounceTime` is a pipeable operator on the RxJS 7.x line. Stable. Store the latest value and the time it arrived. One scheduled task is armed if none exists. When the task runs, if `now < lastTime + dueTime`, reschedule the remainder; otherwise emit `lastValue` and clear. Source complete flushes the pending value then completes. Source error does not flush. Unsubscribe clears `lastValue` and the task.
+
+In plain terms, the operator keeps this memory: S = { idle, holding(lastValue, lastTime, task | null), stopped }. At subscription, before any source notification, that memory is idle (activeTask = null, lastValue = null). It reacts to these events: { next(v), error, complete, taskFire, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: 1 at t=0, 2 at t=40, dueTime 100. The single task fires, sees lastTime 40, reschedules, then writes next(2).
+
+Details that a marble diagram often leaves out: One task, not a reset-and-replace per value. Complete flushes; error does not. Finalize nulls `lastValue` and `activeTask`.
+
 ## Role in the notification machine
 
 Store the latest value and the time it arrived. One scheduled task is armed if none exists. When the task runs, if `now < lastTime + dueTime`, reschedule the remainder; otherwise emit `lastValue` and clear. Source complete flushes the pending value then completes. Source error does not flush. Unsubscribe clears `lastValue` and the task.

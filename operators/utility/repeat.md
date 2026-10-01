@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`repeat` is a pipeable resubscribe on the RxJS 7.x line. Stable. Config form `{ count, delay }` on 7.x. Forward the source. On complete, resubscribe if repeats remain. `count` is the number of times the source is subscribed in total in the numeric form used by 7.x docs (repeat(1) means one subscription, no extra repeat). Delay waits before the resubscribe. Error is not repeated; it is forwarded. Infinite count repeats forever.
+
+In plain terms, the operator keeps this memory: { forwarding(n), waitingDelay, stopped }. At subscription, before any source notification, that memory is forwarding(1). It reacts to these events: { next, error, complete, delayTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1).pipe(repeat(2)) writes next(1) next(1) complete. The complete of the first subscription is swallowed.
+
+Details that a marble diagram often leaves out: Error does not repeat. Delay notifier error becomes the output error. count Infinity never writes the final complete.
+
 ## Role in the notification machine
 
 Forward the source. On complete, resubscribe if repeats remain. `count` is the number of times the source is subscribed in total in the numeric form used by 7.x docs (repeat(1) means one subscription, no extra repeat). Delay waits before the resubscribe. Error is not repeated; it is forwarded. Infinite count repeats forever.

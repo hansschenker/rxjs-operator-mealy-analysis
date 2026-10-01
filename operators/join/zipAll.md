@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`zipAll` is a pipeable higher-order join on the RxJS 7.x line. Stable. Collect inners from the source until it completes, then zip them by index. Emit a tuple whenever every inner can contribute one unused value. Complete when a tuple can no longer be formed.
+
+In plain terms, the operator keeps this memory: Collected inners, a queue per inner, outerDone, stopped. At subscription, before any source notification, that memory is No inners. It reacts to these events: Higher-order alphabet plus inner next/error/complete.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Source of(of(1, 2), of('a')) then zipAll writes next([1, 'a']) complete. The leftover 2 is dropped.
+
+Details that a marble diagram often leaves out: No inners: complete without a next. Project form is deprecated style.
+
 ## Role in the notification machine
 
 Collect inners from the source until it completes, then zip them by index. Emit a tuple whenever every inner can contribute one unused value. Complete when a tuple can no longer be formed.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`find` is a pipeable operator on the RxJS 7.x line. Stable. Emit the first matching value and complete. If the source completes with no match, emit `undefined` and complete. Does not error on a miss. Unsubscribes after a match.
+
+In plain terms, the operator keeps this memory: S = { searching(i), stopped }. At subscription, before any source notification, that memory is searching(0). It reacts to these events: { next, error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: find(x => x > 10) on 1 2 3 writes next(undefined) complete.
+
+Details that a marble diagram often leaves out: Unlike `first`, a miss is `undefined`, not `EmptyError`. Index is passed to the predicate.
+
 ## Role in the notification machine
 
 Emit the first matching value and complete. If the source completes with no match, emit `undefined` and complete. Does not error on a miss. Unsubscribes after a match.

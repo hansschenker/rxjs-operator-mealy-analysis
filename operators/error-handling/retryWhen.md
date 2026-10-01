@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`retryWhen` is a pipeable operator on the RxJS 7.x line. Deprecated. Use `retry({ delay })`. Errors are fed to an errors subject. `notifier(errors)` is subscribed once. When that notifier emits, resubscribe to the source. When the notifier errors or completes, that terminal signal is the output (complete if the notifier completes). Source complete passes through and does not notify.
+
+In plain terms, the operator keeps this memory: S = { forwarding, waiting, stopped }. At subscription, before any source notification, that memory is forwarding, notifier subscribed. It reacts to these events: { next, error, complete, notifierNext, notifierError, notifierComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Notifier that emits once on error causes one resubscribe. A notifier that completes ends the output with complete rather than the source error.
+
+Details that a marble diagram often leaves out: Notifier is subscribed once, not per error. A notifier that neither emits nor terminates stalls in `waiting`.
+
 ## Role in the notification machine
 
 Errors are fed to an errors subject. `notifier(errors)` is subscribed once. When that notifier emits, resubscribe to the source. When the notifier errors or completes, that terminal signal is the output (complete if the notifier completes). Source complete passes through and does not notify.

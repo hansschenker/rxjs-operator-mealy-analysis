@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`onErrorResumeNextWith` is a pipeable continuation on the RxJS 7.x line. Stable. Forward the source. On error or complete, subscribe to the next continuation instead of failing. Every source is continued past its error. The output completes when the last continuation completes. An error is swallowed and becomes the signal to move on.
+
+In plain terms, the operator keeps this memory: { reading(i), stopped }. At subscription, before any source notification, that memory is reading(0) on the piped source. It reacts to these events: { innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A source that errors, continued with of(1), writes next(1) complete and no error.
+
+Details that a marble diagram often leaves out: Both error and complete move to the next source. Creation cousin is `onErrorResumeNext`.
+
 ## Role in the notification machine
 
 Forward the source. On error or complete, subscribe to the next continuation instead of failing. Every source is continued past its error. The output completes when the last continuation completes. An error is swallowed and becomes the signal to move on.

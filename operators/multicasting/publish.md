@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`publish` is a pipeable connectable operator on the RxJS 7.x line. Deprecated. `publish()` is `multicast(() => new Subject())`. ConnectableObservable backed by a plain Subject. No replay, no initial value. Subscribers see only nexts after they subscribe and after `connect()`.
+
+In plain terms, the operator keeps this memory: S = { disconnected, connected, stopped }. Subject has no memory. At subscription, before any source notification, that memory is disconnected. It reacts to these events: Same as multicast.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Connect, source emits 1, late subscriber joins, source emits 2. Late subscriber sees only 2.
+
+Details that a marble diagram often leaves out: Must call `connect()` or `refCount()`. Error on the subject is sticky for late subscribers.
+
 ## Role in the notification machine
 
 ConnectableObservable backed by a plain Subject. No replay, no initial value. Subscribers see only nexts after they subscribe and after `connect()`.

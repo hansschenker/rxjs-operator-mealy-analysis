@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`windowWhen` is a pipeable operator on the RxJS 7.x line. Stable. Window analogue of `bufferWhen`. A window is open from subscribe. When the closing observable emits, complete the window, emit a new one, and call `closingSelector` again.
+
+In plain terms, the operator keeps this memory: S = { open window, stopped }. At subscription, before any source notification, that memory is First window emitted, closer subscribed. It reacts to these events: { next(v), error, complete, closeNext, closeError, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two closer emissions produce three windows if the source is still active after the second close (the third is the newly opened one).
+
+Details that a marble diagram often leaves out: `closingSelector` runs per window. Selector throw is an error.
+
 ## Role in the notification machine
 
 Window analogue of `bufferWhen`. A window is open from subscribe. When the closing observable emits, complete the window, emit a new one, and call `closingSelector` again.

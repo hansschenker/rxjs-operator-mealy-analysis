@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`scan` is a pipeable accumulator on the RxJS 7.x line. Stable. Emit the running accumulation on every source next. With a seed, the first next calls `accumulator(seed, value, index)`. Without a seed, the first next is emitted as the initial acc and the accumulator starts at the second value. Complete and error pass through; the last acc is not re-emitted on complete.
+
+In plain terms, the operator keeps this memory: S = { needSeed, holding(acc, i), stopped }. needSeed only exists when no seed was given. At subscription, before any source notification, that memory is holding(seed, 0) if seed given, else needSeed. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2, 3).pipe(scan((a, b) => a + b, 0)) writes next(1) next(3) next(6) complete.
+
+Details that a marble diagram often leaves out: No seed plus empty source completes with no next. Index passed to the accumulator counts accumulator applications.
+
 ## Role in the notification machine
 
 Emit the running accumulation on every source next. With a seed, the first next calls `accumulator(seed, value, index)`. Without a seed, the first next is emitted as the initial acc and the accumulator starts at the second value. Complete and error pass through; the last acc is not re-emitted on complete.

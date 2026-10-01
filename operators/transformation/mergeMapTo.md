@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`mergeMapTo` is a pipeable higher-order operator on the RxJS 7.x line. Deprecated. Use `mergeMap(() => inner)`. `mergeMap` with a constant inner observable resubscribed for every accepted outer value.
+
+In plain terms, the operator keeps this memory: Same as mergeMap. At subscription, before any source notification, that memory is Idle. It reacts to these events: Same higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 1).pipe(mergeMapTo(of('a'))) writes next('a') next('a') complete.
+
+Details that a marble diagram often leaves out: Resubscribes; does not share one subscription across outer values. Deprecated.
+
 ## Role in the notification machine
 
 `mergeMap` with a constant inner observable resubscribed for every accepted outer value.

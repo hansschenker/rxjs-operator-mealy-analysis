@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`materialize` is a pipeable operator on the RxJS 7.x line. Stable. Turn next into `next(Notification.createNext(v))`. Turn error into `next(Notification.createError(e))` followed by `complete`. Turn complete into `next(Notification.createComplete())` followed by `complete`. Downstream sees no error from the source; errors are values.
+
+In plain terms, the operator keeps this memory: S = { active, stopped }. At subscription, before any source notification, that memory is active. It reacts to these events: { next, error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A failing source becomes a completing source whose last value is an error notification.
+
+Details that a marble diagram often leaves out: The output does not error for source errors. Useful before a delay if error timing must be queued like values.
+
 ## Role in the notification machine
 
 Turn next into `next(Notification.createNext(v))`. Turn error into `next(Notification.createError(e))` followed by `complete`. Turn complete into `next(Notification.createComplete())` followed by `complete`. Downstream sees no error from the source; errors are values.

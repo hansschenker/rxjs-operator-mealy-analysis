@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`raceWith` is a pipeable join on the RxJS 7.x line. Stable. Subscribe to the source and the others. The first to emit a next, error, or complete wins. Losers are unsubscribed. The winner is forwarded.
+
+In plain terms, the operator keeps this memory: { racing, forwarding(winner), stopped }. At subscription, before any source notification, that memory is racing. It reacts to these events: { next_i, error_i, complete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: A synchronous source wins against a later timer and the timer is unsubscribed.
+
+Details that a marble diagram often leaves out: Subscription order matters for synchronous sources. Same machine as creation `race`, with the piped source included.
+
 ## Role in the notification machine
 
 Subscribe to the source and the others. The first to emit a next, error, or complete wins. Losers are unsubscribed. The winner is forwarded.

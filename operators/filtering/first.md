@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`first` is a pipeable operator on the RxJS 7.x line. Stable. Emit the first source value that matches `predicate` (default: all values) and complete. If the source completes with no match, emit `defaultValue` if given, else error `EmptyError`. Unsubscribes after the match.
+
+In plain terms, the operator keeps this memory: S = { searching(i), stopped }. At subscription, before any source notification, that memory is searching(0). It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: first(x => x > 2) on 1, 2, 3, 4 writes next(3) complete and does not see 4.
+
+Details that a marble diagram often leaves out: No predicate means the first next wins. EmptyError is the no-default path.
+
 ## Role in the notification machine
 
 Emit the first source value that matches `predicate` (default: all values) and complete. If the source completes with no match, emit `defaultValue` if given, else error `EmptyError`. Unsubscribes after the match.

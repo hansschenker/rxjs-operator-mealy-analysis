@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`distinctUntilKeyChanged` is a pipeable operator on the RxJS 7.x line. Stable. `distinctUntilChanged` with `keySelector = value => value[key]`. Same one-key memory.
+
+In plain terms, the operator keeps this memory: S = { empty, holding(keyValue), stopped }. At subscription, before any source notification, that memory is empty. It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Objects {id:1, n:0}, {id:1, n:1}, {id:2, n:2} with key id write the first and the third objects.
+
+Details that a marble diagram often leaves out: The whole object is emitted, not the key. Missing key yields `undefined` and participates in comparison.
+
 ## Role in the notification machine
 
 `distinctUntilChanged` with `keySelector = value => value[key]`. Same one-key memory.

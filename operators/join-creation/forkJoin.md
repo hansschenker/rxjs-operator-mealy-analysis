@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`forkJoin` is a join creation function on the RxJS 7.x line. Stable. Subscribe to all sources. Keep only the last value of each. Emit once, when every source has completed, the array or dictionary of last values, then complete. If any source errors, error and unsubscribe the rest. If any source completes without a value, complete without emitting.
+
+In plain terms, the operator keeps this memory: S = per-source { last: V | ⊥, done: bool } plus stopped. At subscription, before any source notification, that memory is All last = ⊥, done = false. It reacts to these events: { subscribe, next_i(v), error_i, complete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: forkJoin([of(1, 2), of('a')]) writes a single next([2, 'a']) complete after both complete. The 1 is overwritten and never emitted.
+
+Details that a marble diagram often leaves out: Empty argument list completes without a next. Dictionary keys are preserved. Unlike `combineLatest`, intermediate snapshots are not outputs.
+
 ## Role in the notification machine
 
 Subscribe to all sources. Keep only the last value of each. Emit once, when every source has completed, the array or dictionary of last values, then complete. If any source errors, error and unsubscribe the rest. If any source completes without a value, complete without emitting.

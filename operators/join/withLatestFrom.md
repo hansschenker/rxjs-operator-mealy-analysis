@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`withLatestFrom` is a pipeable operator on the RxJS 7.x line. Stable. Project form deprecated in favor of a later `map`. Subscribe to the other sources and remember their latest values. Only a next from the main source emits, and only once every other has a latest. The output is `[main, ...latests]` or the projection. Others completing does not complete the output. Main complete completes the output.
+
+In plain terms, the operator keeps this memory: S = { latest_i: V | ⊥, stopped }. At subscription, before any source notification, that memory is All others ⊥. It reacts to these events: { mainNext(v), mainError, mainComplete, otherNext_i, otherError_i, otherComplete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Main emits before the other has emitted: ε. After the other emits a and main emits 1: next([1, a]). A later other value does not emit by itself.
+
+Details that a marble diagram often leaves out: Other complete without a value leaves the machine unable to emit. Other error fails the output.
+
 ## Role in the notification machine
 
 Subscribe to the other sources and remember their latest values. Only a next from the main source emits, and only once every other has a latest. The output is `[main, ...latests]` or the projection. Others completing does not complete the output. Main complete completes the output.

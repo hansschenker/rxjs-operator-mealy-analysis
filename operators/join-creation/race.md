@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`race` is a join creation function on the RxJS 7.x line. Stable. Pipeable cousin is `raceWith`. Subscribe to all sources. The first source to emit a next (or to terminate, in the 7.x race implementation the first notifier wins) becomes the winner; the others are unsubscribed. Forward the winner until it terminates.
+
+In plain terms, the operator keeps this memory: S = { racing, forwarding(winner), stopped }. At subscription, before any source notification, that memory is racing after subscribe. It reacts to these events: { subscribe, next_i, error_i, complete_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: race(slow$, fastOf(1)) writes next(1) complete and unsubscribes slow$ as soon as 1 arrives.
+
+Details that a marble diagram often leaves out: Empty race completes. Synchronous first source wins before later sources are fully armed only according to subscription order; a sync source earlier in the list wins.
+
 ## Role in the notification machine
 
 Subscribe to all sources. The first source to emit a next (or to terminate, in the 7.x race implementation the first notifier wins) becomes the winner; the others are unsubscribed. Forward the winner until it terminates.

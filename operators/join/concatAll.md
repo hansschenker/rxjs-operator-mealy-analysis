@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`concatAll` is a pipeable higher-order join on the RxJS 7.x line. Stable. Flatten inners one at a time in the order the source emitted them. Queue later inners. Equivalent to `mergeAll(1)` / `concatMap(x => x)`.
+
+In plain terms, the operator keeps this memory: S = { active, queue, outerDone, stopped }. At subscription, before any source notification, that memory is Idle, empty queue. It reacts to these events: Higher-order alphabet.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Source of(of(1, 2), of(3)) through concatAll writes next(1) next(2) next(3) complete.
+
+Details that a marble diagram often leaves out: An inner is not subscribed until it reaches the head of the queue. Error abandons the queue.
+
 ## Role in the notification machine
 
 Flatten inners one at a time in the order the source emitted them. Queue later inners. Equivalent to `mergeAll(1)` / `concatMap(x => x)`.

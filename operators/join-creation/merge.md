@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`merge` is a join creation function on the RxJS 7.x line. Stable. Pipeable form is `mergeWith` / `mergeAll`. Subscribe to sources, up to `concurrent` at a time (default Infinity), and forward their nexts as they arrive. Complete when every source has completed. Error on the first error. Extra sources wait in a queue when concurrency is bounded.
+
+In plain terms, the operator keeps this memory: S = { active set, queue of not-yet-subscribed sources, completed count } ∪ { stopped }. At subscription, before any source notification, that memory is Empty active set, full queue, completed count 0. It reacts to these events: { subscribe, innerNext, innerError, innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: merge(timer(2).pipe(mapTo('late')), of('early')) may write next('early') before next('late'). Order across sources is arrival order.
+
+Details that a marble diagram often leaves out: A numeric trailing argument is concurrency, not a source. `concurrent: 1` is sequential and matches `concat` order.
+
 ## Role in the notification machine
 
 Subscribe to sources, up to `concurrent` at a time (default Infinity), and forward their nexts as they arrive. Complete when every source has completed. Error on the first error. Extra sources wait in a queue when concurrency is bounded.

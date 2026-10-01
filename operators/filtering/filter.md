@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`filter` is a pipeable operator on the RxJS 7.x line. Stable. `thisArg` deprecated. Emit source nexts for which `predicate(value, index)` is true. Index increments on every source next, including filtered-out values. Error and complete pass through. Predicate throw is an error.
+
+In plain terms, the operator keeps this memory: S = { active(i), stopped }. At subscription, before any source notification, that memory is active(0). It reacts to these events: { next(v), error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2, 3, 4).pipe(filter(x => x % 2 === 0)) writes next(2) next(4) complete. Indexes seen by the predicate are 0, 1, 2, 3.
+
+Details that a marble diagram often leaves out: Index is the source index, not the count of passed values. Does not unsubscribe early.
+
 ## Role in the notification machine
 
 Emit source nexts for which `predicate(value, index)` is true. Index increments on every source next, including filtered-out values. Error and complete pass through. Predicate throw is an error.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`multicast` is a pipeable connectable operator on the RxJS 7.x line. Deprecated on 7.x in favor of `share` / `connect`. Still in the operator directory. Share one subscription to the source through a Subject. Without a selector, the result is a `ConnectableObservable`: subscribers attach to the subject, and `connect()` subscribes the subject to the source. With a selector, the subject is wired for the duration of the selector's observable.
+
+In plain terms, the operator keeps this memory: S = { disconnected, connected, stopped }. Subject memory (replay or not) is a parameter of the subject, modeled as extra state if the subject is a ReplaySubject or BehaviorSubject. At subscription, before any source notification, that memory is disconnected. It reacts to these events: { subscriberJoin, subscriberLeave, connect, sourceNext, sourceError, sourceComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: Two subscribers and one connect() cause one source subscription. Both receive later nexts. Without connect, neither receives source values.
+
+Details that a marble diagram often leaves out: Factory form builds a fresh subject per connectable subscription. Passing a subject instance shares that subject. Deprecated; `share` covers refcounted use.
+
 ## Role in the notification machine
 
 Share one subscription to the source through a Subject. Without a selector, the result is a `ConnectableObservable`: subscribers attach to the subject, and `connect()` subscribes the subject to the source. With a selector, the subject is wired for the duration of the selector's observable.

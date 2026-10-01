@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`timeout` is a pipeable operator on the RxJS 7.x line. Stable. 7.x config form `{ each, first, with, meta, scheduler }` is the full machine. Numeric due is shorthand for `each`. Arm a timer on subscribe (`first`) and after each next (`each`). If the timer fires before the next source signal, either error with `TimeoutError` or switch to the `with` observable. A source next resets the each-timer.
+
+In plain terms, the operator keeps this memory: S = { waiting(timer), forwardingReplacement, stopped }. At subscription, before any source notification, that memory is waiting with the first-timer armed. It reacts to these events: { next, error, complete, timeoutTick, replacementNext, replacementError, replacementComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: each: 1000 with a silent source writes error(TimeoutError) about a second after subscribe if first is also exceeded.
+
+Details that a marble diagram often leaves out: `with` changes the timeout from a terminal error into a switch. `meta` is attached to TimeoutError. Absolute dates are allowed for first.
+
 ## Role in the notification machine
 
 Arm a timer on subscribe (`first`) and after each next (`each`). If the timer fires before the next source signal, either error with `TimeoutError` or switch to the `with` observable. A source next resets the each-timer.

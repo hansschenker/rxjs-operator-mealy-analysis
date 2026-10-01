@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`isEmpty` is a pipeable operator on the RxJS 7.x line. Stable. If the source emits any next, emit `false` and complete, unsubscribing. If the source completes with no next, emit `true` and complete.
+
+In plain terms, the operator keeps this memory: S = { empty, stopped }. At subscription, before any source notification, that memory is empty. It reacts to these events: { next, error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: EMPTY.pipe(isEmpty()) writes next(true) complete. of(1).pipe(isEmpty()) writes next(false) complete.
+
+Details that a marble diagram often leaves out: Does not wait for complete after the first value. Error is not converted to a boolean.
+
 ## Role in the notification machine
 
 If the source emits any next, emit `false` and complete, unsubscribing. If the source completes with no next, emit `true` and complete.

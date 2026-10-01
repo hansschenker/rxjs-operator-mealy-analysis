@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`delay` is a pipeable operator on the RxJS 7.x line. Stable. Shift next notifications by `due`. Complete is delayed so it stays after delayed nexts. Error is not delayed. Each next is a scheduled action; state is the queue of pending actions.
+
+In plain terms, the operator keeps this memory: S = { pending queue of scheduled nexts, completeArmed, stopped }. At subscription, before any source notification, that memory is Empty queue. It reacts to these events: { next(v), error, complete, dueTick(v), completeTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1).pipe(delay(1000)) writes nothing at subscribe time and next(1) complete about a second later.
+
+Details that a marble diagram often leaves out: Date due is absolute. Unsubscribe cancels pending ticks.
+
 ## Role in the notification machine
 
 Shift next notifications by `due`. Complete is delayed so it stays after delayed nexts. Error is not delayed. Each next is a scheduled action; state is the queue of pending actions.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`count` is a pipeable operator on the RxJS 7.x line. Stable. Count source nexts, or count those matching `predicate`. Emit the count on complete, then complete. No emission before complete.
+
+In plain terms, the operator keeps this memory: S = { counting(n, i), stopped }. At subscription, before any source notification, that memory is counting(0, 0). It reacts to these events: { next, error, complete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: of(1, 2, 3, 4).pipe(count(x => x % 2 === 0)) writes next(2) complete.
+
+Details that a marble diagram often leaves out: Empty source emits `next(0) complete`. Predicate receives index.
+
 ## Role in the notification machine
 
 Count source nexts, or count those matching `predicate`. Emit the count on complete, then complete. No emission before complete.

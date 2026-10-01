@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`concat` is a join creation function on the RxJS 7.x line. Stable. Pipeable cousin is `concatWith` / `concatAll`. Subscribe to the first source and forward it until it completes, then subscribe to the next, and so on. One active inner. An error from any source errors the output and later sources are not subscribed. Complete after the last source completes.
+
+In plain terms, the operator keeps this memory: S = { reading(i) | 0 ≤ i ≤ n } ∪ { stopped }. reading(i) means source i is the active subscription. At subscription, before any source notification, that memory is reading(0) after subscribe; n = 0 (no sources) is already done. It reacts to these events: { subscribe, innerNext(v), innerError(e), innerComplete, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: concat(of(1,2), of(3)) writes next(1) next(2) next(3) complete. The 3 cannot appear before the first source completes.
+
+Details that a marble diagram often leaves out: Sources are subscribed lazily, not up front. Promises and arrays are normalized via `from` when they are reached.
+
 ## Role in the notification machine
 
 Subscribe to the first source and forward it until it completes, then subscribe to the next, and so on. One active inner. An error from any source errors the output and later sources are not subscribed. Complete after the last source completes.

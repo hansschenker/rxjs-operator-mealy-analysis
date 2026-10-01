@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`windowToggle` is a pipeable operator on the RxJS 7.x line. Stable. Window analogue of `bufferToggle`. Each opening emits a new window observable and subscribes to a closer. Source values go to every open window. Closer next completes that window.
+
+In plain terms, the operator keeps this memory: S = { list of open windows, stopped }. At subscription, before any source notification, that memory is No window until the first opening. It reacts to these events: { next(v), error, complete, opening, closing_i, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: One opening, two values, one closing: one window observable emits both values and completes.
+
+Details that a marble diagram often leaves out: Values with no open window are dropped. Closing complete without a value does not emit a boundary by itself in the same way a next does; it unsubscribes the closer.
+
 ## Role in the notification machine
 
 Window analogue of `bufferToggle`. Each opening emits a new window observable and subscribes to a closer. Source values go to every open window. Closer next completes that window.

@@ -11,6 +11,18 @@
 
 SuperGrok is the main contributor of this analysis.
 
+## Explanation
+
+`timer` is a cold scheduled producer on the RxJS 7.x line. Stable. Subscribe schedules the first emission at `due`. That emission is `next(0)`. If no period is given, it then completes. If a period is given, it continues as `interval`, emitting 1, 2, ... . A `Date` due time is absolute.
+
+In plain terms, the operator keeps this memory: S = { idle, waitingDue(n), ticking(n), stopped }. At subscription, before any source notification, that memory is idle. It reacts to these events: { subscribe, dueTick, periodTick, unsubscribe }.
+
+A value is not automatically forwarded. What is sent depends on the memory and on the event that just arrived. Silence is a real result. One event may also send a value and then completion. After an error, a completion, or an unsubscribe, the operator is finished and later events are ignored.
+
+Walk from the analysis: timer(500) writes next(0) complete. timer(500, 1000) writes next(0) then next(1), next(2), ... until unsubscribe.
+
+Details that a marble diagram often leaves out: `interval` is `timer(period, period)`. Due time `0` still goes through the scheduler; it is not a synchronous `of(0)`.
+
 ## Role in the notification machine
 
 Subscribe schedules the first emission at `due`. That emission is `next(0)`. If no period is given, it then completes. If a period is given, it continues as `interval`, emitting 1, 2, ... . A `Date` due time is absolute.
