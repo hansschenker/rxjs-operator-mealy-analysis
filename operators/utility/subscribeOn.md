@@ -59,6 +59,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `schedulerTick → ε` (the subscribe action).
 - Source notifications copy through once forwarding.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { scheduled, forwarding, stopped }.
+
+Memory at subscribe: scheduled.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| schedulerTick | forwarding and subscribe to source | ε (the subscribe action) |
+| Source terminal | stopped | ε |
+| Unsubscribe while scheduled | stopped without subscribing | nothing named on a separate output row |
+| Source notifications copy through once forwarding | named by the output row; memory change is in the transition rows above | Source notifications copy through once forwarding |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 A synchronous `of(1)` under `subscribeOn(asyncScheduler)` does not emit inside the caller stack; it emits when the scheduler runs the subscription.

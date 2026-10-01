@@ -64,6 +64,26 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `opened × fail(error) → error(AjaxError)`.
 - `opened × unsubscribe → ε` (abort, no terminal notification if the consumer already left).
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { idle, opened(request), stopped }. opened remembers the in-flight request handle so unsubscribe can abort it. There is no value memory: the response is not accumulated inside the machine beyond the XHR buffer owned by the host.
+
+Memory at subscribe: idle. No request exists before subscribe.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| idle × subscribe | opened(request) (request constructed and sent) | ε (the send itself is an action; no notification yet) |
+| opened × progress(p) | opened (handle unchanged) | next(progressEvent) when progress is included, else this input is not in Z |
+| opened × load(response) | stopped | next(AjaxResponse) · complete |
+| opened × fail(error) | stopped | error(AjaxError) |
+| opened × unsubscribe | stopped (abort the request) | ε (abort, no terminal notification if the consumer already left) |
+| stopped × _ | stopped | nothing named on a separate output row |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `subscribe` → `opened`; host `load` → output `next(response) · complete`, state `stopped`. A second subscriber is a fresh machine in `idle`, not a replay.

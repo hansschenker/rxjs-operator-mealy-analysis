@@ -61,6 +61,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - Duration end → `next(trailing)` if config.trailing and a value is buffered, else `ε`.
 - Complete may emit the trailing value when trailing is set.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { idle, throttling(trailingValue \| ⊥), stopped }.
+
+Memory at subscribe: idle.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| idle × next | throttling (leading emit already decided by G) | next(v) |
+| throttling × next stores trailing value | throttling × next stores trailing value | ε |
+| Duration end | idle, or back to throttling if a trailing emit starts a new window | next(trailing) if config.trailing and a value is buffered, else ε |
+| Complete | stopped | Complete may emit the trailing value when trailing is set |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Default throttle: values 1, 2, 3 inside one duration write only `next(1)`.

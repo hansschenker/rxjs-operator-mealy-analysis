@@ -60,6 +60,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `innerError(e) → error(e)`.
 - `innerComplete → ε` if another source remains; `complete` if it was the last.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { reading(i) \| 0 ≤ i ≤ n } ∪ { stopped }. reading(i) means source i is the active subscription.
+
+Memory at subscribe: reading(0) after subscribe; n = 0 (no sources) is already done.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| reading(i) × innerNext | reading(i) | next(v) |
+| reading(i) × innerComplete | reading(i+1) if i+1 < n, else stopped | ε if another source remains; complete if it was the last |
+| reading(i) × innerError | stopped | error(e) |
+| unsubscribe | stopped | nothing named on a separate output row |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `concat(of(1,2), of(3))` writes `next(1) next(2) next(3) complete`. The `3` cannot appear before the first source completes.

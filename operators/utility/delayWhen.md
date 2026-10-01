@@ -61,6 +61,24 @@ Empty set. Source not yet subscribed if subscriptionDelay is set.
 - Source complete → `ε`, then `complete` when the last delay fires.
 - `error → error` now.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { delaying set of (value, durationSub), sourceDone, stopped }.
+
+Memory at subscribe: Empty set. Source not yet subscribed if subscriptionDelay is set.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next adds a delay entry | next adds a delay entry | next(value_i) |
+| durationNext_i removes it | durationNext_i removes it | ε |
+| Source complete marks sourceDone; stop when the set is empty | Source complete marks sourceDone; stop when the set is empty | ε, then complete when the last delay fires |
+| Error | stopped | error now |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Two values with different duration selectors can emit out of source order.

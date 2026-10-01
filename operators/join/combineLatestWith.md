@@ -59,6 +59,23 @@ All latest `⊥`, none done.
 - `complete_i → complete` only when all are done.
 - `error_i → error`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: Per-source { latest: V \| ⊥, done } plus stopped. Index 0 is the piped source.
+
+Memory at subscribe: All latest ⊥, none done.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next_i stores latest_i | next_i stores latest_i | next(snapshot) if every latest is present, else ε |
+| All done | stopped | complete only when all are done |
+| Any error | stopped | error |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Source emits 1 before the other emits: `ε`. Other emits `a`: `next([1, a])`. Source emits 2: `next([2, a])`.

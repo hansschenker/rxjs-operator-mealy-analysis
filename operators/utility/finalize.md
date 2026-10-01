@@ -58,6 +58,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - The ending input also runs the callback exactly once.
 - Unsubscribe writes `ε` downstream and still runs the callback.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: { active, stopped }. A flag records that the callback has run.
+
+Memory at subscribe: active, callback not run.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Next stays active | Next stays active | nothing named on a separate output row |
+| Error, complete, or unsubscribe | stopped and marks the callback done | Unsubscribe writes ε downstream and still runs the callback |
+| Notifications are copied | named by the output row; memory change is in the transition rows above | Notifications are copied |
+| The ending input also runs the callback exactly once | named by the output row; memory change is in the transition rows above | The ending input also runs the callback exactly once |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 A take(1) downstream unsubscribes after the first next; finalize runs on that unsubscribe, not on a later source complete.

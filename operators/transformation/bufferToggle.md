@@ -62,6 +62,25 @@ No open buffers.
 - `error → error`.
 - `complete → complete` with no trailing buffers.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { list of { buf, closingSub }, stopped }.
+
+Memory at subscribe: No open buffers.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| opening(o) appends a new buffer and subscribes to its closer | opening(o) appends a new buffer and subscribes to its closer | nothing named on a separate output row |
+| next(v) appends to all open buffers | next(v) appends to all open buffers | next(buf_i) |
+| closing_i removes buffer i | closing_i removes buffer i | ε |
+| Any error | stopped. Source complete → stopped (open buffers are not flushed by source complete in bufferToggle; they are discarded) | error |
+| Closing complete without a next does not emit; it just ends that closer | Closing complete without a next does not emit; it just ends that closer | complete with no trailing buffers |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Opening at value 1, values 1 2, closing, writes `next([1, 2])`. Values that arrive with no open buffer are dropped.

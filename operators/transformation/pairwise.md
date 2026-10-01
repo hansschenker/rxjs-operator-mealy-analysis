@@ -59,6 +59,23 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `holding(p) × next(v) → next([p, v])`.
 - `complete → complete`, `error → error`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { empty, holding(prev), stopped }.
+
+Memory at subscribe: empty.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| empty × next(v) | holding(v) | ε |
+| holding(p) × next(v) | holding(v) | next([p, v]) |
+| Terminal | stopped | complete, error → error |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `of(1, 2, 3).pipe(pairwise())` writes `next([1, 2]) next([2, 3]) complete`.

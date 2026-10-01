@@ -58,6 +58,23 @@ One empty buffer, count 0, unless `bufferSize < 1` which errors.
 - `complete → next(buf)` for each non-empty open buffer, then `complete`.
 - `error(e) → error(e)`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { buffers: T[][], count since last open, stopped }.
+
+Memory at subscribe: One empty buffer, count 0, unless bufferSize < 1 which errors.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next(v) appends v to every open buffer, may close full buffers, and may open a new buffer when count hits startBufferEvery | next(v) appends v to every open buffer, may close full buffers, and may open a new buffer when count hits startBufferEvery | the concatenation of next(buf) for each buffer that just reached bufferSize, else ε |
+| Terminal inputs | stopped | next(buf) for each non-empty open buffer, then complete |
+| error(e) | named by the output row; memory change is in the transition rows above | error(e) |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `bufferCount(3, 1)` on `a b c d` emits `[a,b,c]`, then `[b,c,d]`, and on complete the trailing partials `[c,d]` and `[d]`.

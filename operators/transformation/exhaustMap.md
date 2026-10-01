@@ -60,6 +60,24 @@ Higher-order alphabet; `outerNext(v)` carries the value passed to `project`.
 - `outerNext → ε`.
 - `innerComplete → complete` only when outer is done and state returns to idle.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { idle, busy, stopped } with outerDone.
+
+Memory at subscribe: idle.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| idle × outerNext | busy if project returns | next |
+| busy × outerNext | busy with no subscribe | ε |
+| innerComplete | idle or stopped if outer done | complete only when outer is done and state returns to idle |
+| Project throw or inner error | stopped | nothing named on a separate output row |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `clicks.pipe(exhaustMap(() => interval(1000).pipe(take(3))))` ignores clicks until the current three ticks finish.

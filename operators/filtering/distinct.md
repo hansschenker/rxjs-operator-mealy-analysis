@@ -59,6 +59,23 @@ Empty set.
 - `flush → ε`.
 - Error and complete copy through.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { seen: Set, stopped }.
+
+Memory at subscribe: Empty set.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next(v) adds key(v) if absent | next(v) adds key(v) if absent | next(v) if key was absent, else ε |
+| flush clears the set | flush clears the set | ε |
+| Terminal | stopped | Error and complete copy through |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `of(1, 1, 2, 1).pipe(distinct())` writes `next(1) next(2) complete`.

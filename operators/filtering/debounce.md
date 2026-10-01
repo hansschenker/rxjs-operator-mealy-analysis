@@ -59,6 +59,23 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `durationNext → next(v)` for the value that armed this duration.
 - `complete → next(pending) · complete` if pending, else `complete`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { idle, pending(v, duration), stopped }.
+
+Memory at subscribe: idle.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next(v) replaces pending duration | pending(v, newDuration) | ε |
+| durationNext | idle | next(v) for the value that armed this duration |
+| Terminal | stopped | next(pending) · complete if pending, else complete |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Values 1, 2, 3 each restarting the duration, then a quiet duration next, writes `next(3)` only.

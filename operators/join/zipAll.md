@@ -59,6 +59,24 @@ Higher-order alphabet plus inner next/error/complete.
 - A complete that leaves a queue empty and done → complete.
 - Any error → error.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: Collected inners, a queue per inner, outerDone, stopped.
+
+Memory at subscribe: No inners.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Outer next appends an inner | Outer next appends an inner | next(tuple) if it completed a row, else ε |
+| Outer complete freezes the set and starts pairing | Outer complete freezes the set and starts pairing | complete |
+| Inner next appends to that queue; shift when all queues are non-empty | Inner next appends to that queue; shift when all queues are non-empty | nothing named on a separate output row |
+| Any error | named by the output row; memory change is in the transition rows above | error |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Source `of(of(1, 2), of('a'))` then zipAll writes `next([1, 'a']) complete`. The leftover 2 is dropped.

@@ -55,6 +55,22 @@ Same higher-order alphabet as `concatMap`.
 
 - Same output rules as `concatMap`. The outer value is not part of the output unless a deprecated result selector closes over it.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: Same as concatMap: { active, queue, outerDone, stopped }.
+
+Memory at subscribe: Idle, empty queue.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Same transitions as concatMap. The constant inner is resubscribed for every dequeued outer value | Same transitions as concatMap. The constant inner is resubscribed for every dequeued outer value | nothing named on a separate output row |
+| Same output rules as concatMap. The outer value is not part of the output unless a deprecated result selector closes over it | named by the output row; memory change is in the transition rows above | Same output rules as concatMap. The outer value is not part of the output unless a deprecated result selector closes over it |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `of(1, 2).pipe(concatMapTo(of('x')))` writes `next('x') next('x') complete`.

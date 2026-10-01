@@ -59,6 +59,23 @@ Empty queues, no source done.
 - `complete_i → complete` if no further tuple can be formed, else `ε`.
 - `error_i(e) → error(e)`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = per-source queue (sequence of V) plus done flags, or stopped. Queues make S infinite.
+
+Memory at subscribe: Empty queues, no source done.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next_i(v) appends to queue i. If all queues are non-empty, shift one from each | next_i(v) appends to queue i. If all queues are non-empty, shift one from each | next(tuple) if the append filled the last empty queue, else ε |
+| complete_i marks done. If queue i is empty and done, | stopped | complete if no further tuple can be formed, else ε |
+| error_i | stopped | error(e) |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `zip(of(1, 2), of('a'))` writes `next([1, 'a']) complete`. The `2` stays queued and is dropped when the shorter source completes.

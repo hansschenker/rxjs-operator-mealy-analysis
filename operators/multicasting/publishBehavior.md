@@ -57,6 +57,22 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `subscriberJoin → next(current)` synchronously.
 - `sourceNext(v) → next(v)` to all current subscribers.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { disconnected(current), connected(current), stopped }.
+
+Memory at subscribe: disconnected(initialValue).
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| subscriberJoin does not change connection, but current is readable | subscriberJoin does not change connection, but current is readable | next(current) synchronously |
+| sourceNext(v) | sourceNext(v) sets current to v if connected | next(v) to all current subscribers |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `publishBehavior(0)` subscriber before connect still gets `next(0)`. After connect and source `1`, subscribers get `next(1)`.

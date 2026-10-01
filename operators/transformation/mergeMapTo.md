@@ -55,6 +55,21 @@ Same higher-order alphabet.
 
 - Same as `mergeMap`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: Same as mergeMap.
+
+Memory at subscribe: Idle.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Same as mergeMap, project ignores the outer value | Same as mergeMap, project ignores the outer value | Same as mergeMap |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `of(1, 1).pipe(mergeMapTo(of('a')))` writes `next('a') next('a') complete`.

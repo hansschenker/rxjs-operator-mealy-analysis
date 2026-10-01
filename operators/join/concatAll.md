@@ -58,6 +58,23 @@ Higher-order alphabet.
 - `innerNext → next`.
 - `innerComplete → complete` only if nothing remains.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { active, queue, outerDone, stopped }.
+
+Memory at subscribe: Idle, empty queue.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| outerNext enqueues and starts if idle | outerNext enqueues and starts if idle | next |
+| innerComplete starts the next queued inner | innerComplete starts the next queued inner | complete only if nothing remains |
+| Idle and outer done | stopped | nothing named on a separate output row |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Source `of(of(1, 2), of(3))` through `concatAll` writes `next(1) next(2) next(3) complete`.

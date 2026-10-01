@@ -60,6 +60,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - Before connect, source symbols are not produced.
 - Late subscribers see whatever the subject replays.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { disconnected, connected, stopped }. Subject memory (replay or not) is a parameter of the subject, modeled as extra state if the subject is a ReplaySubject or BehaviorSubject.
+
+Memory at subscribe: disconnected.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| connect in disconnected | connected and subscribe source to subject | subject next (fan-out is the subject's job) |
+| sourceNext stays connected | sourceNext stays connected | nothing named on a separate output row |
+| Source terminal | stopped (subject terminated) | Before connect, source symbols are not produced |
+| Selector form connects while the selected observable is subscribed | Selector form connects while the selected observable is subscribed | Late subscribers see whatever the subject replays |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Two subscribers and one `connect()` cause one source subscription. Both receive later nexts. Without connect, neither receives source values.

@@ -55,6 +55,21 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 
 - Emit on first value and whenever `v[key]` compares unequal to memory.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { empty, holding(keyValue), stopped }.
+
+Memory at subscribe: empty.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Same as distinctUntilChanged, key is v[key] | Same as distinctUntilChanged, key is v[key] | Emit on first value and whenever v[key] compares unequal to memory |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Objects `{id:1, n:0}`, `{id:1, n:1}`, `{id:2, n:2}` with key `id` write the first and the third objects.

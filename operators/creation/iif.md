@@ -60,6 +60,26 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - Inner notifications are copied to the output.
 - Missing branch writes `complete` on subscribe.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { idle, forwarding(branch), stopped }.
+
+Memory at subscribe: idle.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| idle × subscribe | forwarding(true) or forwarding(false) based on condition() | error(e), else ε (branch subscription is an action) |
+| A throw in condition | stopped | nothing named on a separate output row |
+| Inner terminal or unsubscribe | stopped | nothing named on a separate output row |
+| Inner next stays in forwarding | Inner next stays in forwarding | nothing named on a separate output row |
+| Inner notifications are copied to the output | named by the output row; memory change is in the transition rows above | Inner notifications are copied to the output |
+| Missing branch writes complete on subscribe | named by the output row; memory change is in the transition rows above | Missing branch writes complete on subscribe |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `iif(() => flag, of(1), of(2))` with `flag = true` writes `next(1) complete` and never subscribes to `of(2)`.

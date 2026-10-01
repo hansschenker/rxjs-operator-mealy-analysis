@@ -60,6 +60,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `notifierNext` in `none → ε`.
 - Source complete does not flush the fresh value in `sample` (unlike audit).
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { none, fresh(v), stopped }.
+
+Memory at subscribe: none.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next(v) | fresh(v) | ε |
+| notifierNext in fresh | none | next(v) |
+| Source complete | stopped | Source complete does not flush the fresh value in sample (unlike audit) |
+| notifierNext in none | named by the output row; memory change is in the transition rows above | ε |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Value 1, notifier, value 2, value 3, notifier writes `next(1) next(3)`.

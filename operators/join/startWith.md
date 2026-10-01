@@ -58,6 +58,23 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - Prefix step → `next(values[i])`.
 - Source notifications copy through after the prefix.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { prefix(i), forwarding, stopped }.
+
+Memory at subscribe: prefix(0).
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Prefix steps advance i | Prefix steps advance i | next(values[i]) |
+| After the last prefix value, enter forwarding and subscribe to source | After the last prefix value, enter forwarding and subscribe to source | nothing named on a separate output row |
+| Source terminal | stopped | Source notifications copy through after the prefix |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `of(2, 3).pipe(startWith(1))` writes `next(1) next(2) next(3) complete`.

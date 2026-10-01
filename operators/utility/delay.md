@@ -61,6 +61,24 @@ Empty queue.
 - `error → error` now.
 - `completeTick → complete`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { pending queue of scheduled nexts, completeArmed, stopped }.
+
+Memory at subscribe: Empty queue.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next enqueues a due tick | next enqueues a due tick | ε (schedule action) |
+| dueTick removes that item | dueTick removes that item | next(v) |
+| complete arms a complete tick after pending nexts | complete arms a complete tick after pending nexts | complete |
+| error | stopped immediately | error now |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `of(1).pipe(delay(1000))` writes nothing at subscribe time and `next(1) complete` about a second later.

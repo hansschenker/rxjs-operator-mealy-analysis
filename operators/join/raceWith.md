@@ -58,6 +58,23 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - Winning error → error.
 - Winning complete → complete.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: { racing, forwarding(winner), stopped }.
+
+Memory at subscribe: racing.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| First signal from i | forwarding(i) or stopped if that signal is terminal | next, then later winner notifications copy through |
+| Later signals from losers are not delivered | Later signals from losers are not delivered | error |
+| Winning complete | named by the output row; memory change is in the transition rows above | complete |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 A synchronous source wins against a later timer and the timer is unsubscribed.

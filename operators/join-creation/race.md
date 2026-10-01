@@ -61,6 +61,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `racing × complete_i → complete`.
 - Later winner notifications are forwarded.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { racing, forwarding(winner), stopped }.
+
+Memory at subscribe: racing after subscribe.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| racing × next_i | forwarding(i) and drop other subscriptions | next(v) |
+| racing × error_i | stopped if that error is the first signal (7.x: first notification wins, including error/complete) | error(e) |
+| racing × complete_i | stopped if complete wins the race | complete |
+| forwarding(i) copies i's transitions; signals from losers are not in Z anymore | forwarding(i) copies i's transitions; signals from losers are not in Z anymore | Later winner notifications are forwarded |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `race(slow$, fastOf(1))` writes `next(1) complete` and unsubscribes `slow$` as soon as `1` arrives.

@@ -59,6 +59,23 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `complete` in `seen(v) → next(v) · complete`.
 - `complete` in `empty → next(default) · complete` or `error(EmptyError)`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { seen(v) \| empty, stopped }.
+
+Memory at subscribe: empty.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Matching next | seen(v) | ε |
+| Non-matching next stays | Non-matching next stays | next(v) · complete |
+| Complete | stopped | next(default) · complete or error(EmptyError) |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `of(1, 2, 3).pipe(last())` writes `next(3) complete` only after the source completes.

@@ -57,6 +57,22 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `next(v) → next({ value: v, interval: now - lastTime })`.
 - Error and complete copy through.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { active(lastTime), stopped }.
+
+Memory at subscribe: active(scheduler.now() at subscribe).
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next replaces lastTime with now | next replaces lastTime with now | next({ value: v, interval: now - lastTime }) |
+| Terminal | stopped | Error and complete copy through |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Two values one second apart write intervals near 0 (or subscribe delay) and near 1000.

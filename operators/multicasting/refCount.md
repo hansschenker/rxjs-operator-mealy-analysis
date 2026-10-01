@@ -59,6 +59,24 @@ refCount 0, no connection.
 - Source next → next to current subscribers.
 - Join writes ε unless the subject replays.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: { refCount, connection \| ⊥, stopped }.
+
+Memory at subscribe: refCount 0, no connection.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Join at 0 | connect, refCount 1 | next to current subscribers |
+| Join increments | Join increments | Join writes ε unless the subject replays |
+| Leave decrements; at 0 disconnect | Leave decrements; at 0 disconnect | nothing named on a separate output row |
+| Source terminal stops the subject | Source terminal stops the subject | nothing named on a separate output row |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Two subscribers share one connection. When both leave, the source is unsubscribed.

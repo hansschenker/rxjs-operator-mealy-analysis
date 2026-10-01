@@ -60,6 +60,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - Replacement notifications copy through.
 - Source error is not forwarded as error when the selector handles it.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { forwarding(source), forwarding(replacement), stopped }.
+
+Memory at subscribe: forwarding(source).
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Source next stays | Source next stays | next |
+| Source error | forwarding(replacement) if selector returns, else stopped | ε (switch action) or error if selector throws |
+| Replacement terminal | stopped | Replacement notifications copy through |
+| Source error is not forwarded as error when the selector handles it | named by the output row; memory change is in the transition rows above | Source error is not forwarded as error when the selector handles it |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Source errors, selector returns `of(0)`, output writes the source nexts so far, then `next(0) complete`, and no error.

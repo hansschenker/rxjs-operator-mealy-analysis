@@ -60,6 +60,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `tick → next(latest)`.
 - `complete` flushes pending then completes.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { idle, auditing(latest), stopped }.
+
+Memory at subscribe: idle.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| idle × next(v) | auditing(v) | ε |
+| auditing × next(v) | auditing(v) | next(latest) |
+| tick | idle | nothing named on a separate output row |
+| Terminal | stopped | complete flushes pending then completes |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Two values inside the duration and a tick write a single `next` of the second value.

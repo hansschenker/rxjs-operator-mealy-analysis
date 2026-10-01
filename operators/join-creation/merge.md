@@ -61,6 +61,25 @@ Empty active set, full queue, completed count 0.
 - `innerComplete → ε`, or `complete` when the completed count reaches the source count.
 - `innerError(e) → error(e)`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { active set, queue of not-yet-subscribed sources, completed count } ∪ { stopped }.
+
+Memory at subscribe: Empty active set, full queue, completed count 0.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Subscribe fills active up to the concurrency limit | Subscribe fills active up to the concurrency limit | nothing named on a separate output row |
+| innerNext does not change membership | innerNext does not change membership | next(v) |
+| innerComplete removes that inner, increments completed, pulls from the queue if any | innerComplete removes that inner, increments completed, pulls from the queue if any | ε, or complete when the completed count reaches the source count |
+| All sources completed | stopped | nothing named on a separate output row |
+| innerError | stopped | error(e) |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `merge(timer(2).pipe(mapTo('late')), of('early'))` may write `next('early')` before `next('late')`. Order across sources is arrival order.

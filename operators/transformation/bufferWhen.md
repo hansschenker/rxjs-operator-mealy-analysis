@@ -60,6 +60,25 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `error → error`.
 - `next → ε`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { open(buf), stopped }.
+
+Memory at subscribe: open([]) with the first closer subscribed.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next(v) | open(buf ++ [v]) | next(buf) |
+| closeNext or closeComplete | open([]) with a new closer, unless the source has already ended | next(buf) · complete |
+| Source complete or any error | stopped | nothing named on a separate output row |
+| error | named by the output row; memory change is in the transition rows above | error |
+| next | named by the output row; memory change is in the transition rows above | ε |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 A closer that emits twice produces two arrays covering the values between those signals, then arms a third buffer.

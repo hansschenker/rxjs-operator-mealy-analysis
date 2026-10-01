@@ -11,7 +11,7 @@ This repository analyzes every public RxJS 7.x operator as a Mealy machine, usin
 5. Transition function `(T : S × Z → S)`
 6. Output function `(G : S × Z → A*)`
 
-Each operator has its own artifact under [`operators/`](operators/README.md). Every file starts with an explanation in plain language, then the 6-tuple. The models are grounded in the RxJS 7.x sources at <https://github.com/ReactiveX/rxjs/tree/7.x/src/internal/operators>, revision `e5351d02e225e275ac0e497c7b66eaa5f0c88791`. Creation functions that do not live in that directory are read from their real 7.x files (`src/internal/observable/*`, `src/internal/ajax/ajax.ts`) and the file path is recorded in the artifact.
+Each operator has its own artifact under [`operators/`](operators/README.md). Every file starts with an explanation in plain language, then the 6-tuple, then a state transition table of current memory and event, next memory, and what is sent. The models are grounded in the RxJS 7.x sources at <https://github.com/ReactiveX/rxjs/tree/7.x/src/internal/operators>, revision `e5351d02e225e275ac0e497c7b66eaa5f0c88791`. Creation functions that do not live in that directory are read from their real 7.x files (`src/internal/observable/*`, `src/internal/ajax/ajax.ts`) and the file path is recorded in the artifact.
 
 ## Contributor
 

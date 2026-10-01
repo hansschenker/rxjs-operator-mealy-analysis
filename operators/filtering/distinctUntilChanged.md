@@ -59,6 +59,23 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `holding(k) × next(v) → next(v)` if `compare(k, key(v))` is false, else `ε`.
 - Throw in comparator or key selector → `error`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { empty, holding(key), stopped }.
+
+Memory at subscribe: empty.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| empty × next(v) | holding(key(v)) | next(v) |
+| holding(k) × next(v) | holding(key(v)) whether or not it emits | next(v) if compare(k, key(v)) is false, else ε |
+| Terminal | stopped | error |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `1, 1, 2, 2, 1` writes `next(1) next(2) next(1)`. The last 1 passes because it differs from 2.

@@ -60,6 +60,24 @@ Outer `{ next(Observable), error, complete }`. Window `{ next(v), error, complet
 - `boundaryNext →` window `complete`, outer `next(newWindow$)`.
 - `complete →` window `complete` · outer `complete`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { open window subject, stopped }.
+
+Memory at subscribe: A first window already emitted on subscribe.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| boundaryNext completes the current window and opens another | boundaryNext completes the current window and opens another | window complete, outer next(newWindow$) |
+| next(v) leaves the same window open | next(v) leaves the same window open | next(window$) |
+| Source or boundary terminal | stopped | window next(v); outer ε |
+| complete | named by the output row; memory change is in the transition rows above | window complete · outer complete |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Two boundary signals around values `1, 2` then `3` produce two window observables, the first emitting 1 and 2, the second emitting 3.

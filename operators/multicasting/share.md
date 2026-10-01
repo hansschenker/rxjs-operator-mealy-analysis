@@ -60,6 +60,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `subscriberJoin` in `hot` writes whatever the connector subject replays (a plain Subject writes `ε`).
 - Reset itself writes `ε` besides the terminal notification already sent.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { cold, hot(subject, refCount), resetting, stopped }.
+
+Memory at subscribe: cold.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| cold × subscriberJoin | hot(refCount=1) and subscribe to source | next to all current subscribers |
+| Further joins increment refCount | Further joins increment refCount | subscriberJoin in hot writes whatever the connector subject replays (a plain Subject writes ε) |
+| Leave decrements. At 0, if resetOnRefCountZero, go cold after the optional notifier | Leave decrements. At 0, if resetOnRefCountZero, go cold after the optional notifier | Reset itself writes ε besides the terminal notification already sent |
+| Source error/complete reset to cold if the matching flag is true, else stay terminated on the same subject | Source error/complete reset to cold if the matching flag is true, else stay terminated on the same subject | nothing named on a separate output row |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Two subscribers share one interval. Both unsubscribe: default share tears down and the next subscriber starts a fresh interval at 0.

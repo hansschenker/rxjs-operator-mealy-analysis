@@ -62,6 +62,25 @@ No active inner, empty queue, outer not done.
 - `outerNext → ε`.
 - Errors copy through.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { active inner \| ⊥, queue of outer values, outerDone, stopped }.
+
+Memory at subscribe: No active inner, empty queue, outer not done.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| outerNext enqueues, and starts an inner if none is active | outerNext enqueues, and starts an inner if none is active | next(r) (after optional result selector) |
+| innerNext leaves the queue unchanged | innerNext leaves the queue unchanged | ε |
+| innerComplete pops the next queued outer into active, or clears active | innerComplete pops the next queued outer into active, or clears active | complete only if outer is done and the queue is empty, else ε |
+| Both outer done and idle | stopped | Errors copy through |
+| Any error | stopped | nothing named on a separate output row |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Outer `1, 2` with project `x => of(x, x)` writes `next(1) next(1) next(2) next(2)`. The second inner cannot start before the first completes.

@@ -58,6 +58,23 @@ Higher-order alphabet.
 - `innerNext → next`.
 - Completion word only when active and queue are empty and outer is done.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { active count, queue, outerDone, stopped }.
+
+Memory at subscribe: Active 0, empty queue.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Start inners up to concurrency | Start inners up to concurrency | next |
+| innerComplete pulls the queue | innerComplete pulls the queue | nothing named on a separate output row |
+| All done | stopped | Completion word only when active and queue are empty and outer is done |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Two delayed inners can interleave their nexts on the output.

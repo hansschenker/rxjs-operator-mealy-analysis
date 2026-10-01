@@ -58,6 +58,24 @@ Outer window observables; inner next/complete.
 - On source next: `next(v)` into each open window.
 - On full: that window `complete`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { list of open windows with their counts, source count, stopped }.
+
+Memory at subscribe: First window emitted, count 0.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next(v) increments counts, may complete full windows, may open a new window | next(v) increments counts, may complete full windows, may open a new window | On full: that window complete |
+| Source complete completes open windows and stops | Source complete completes open windows and stops | nothing named on a separate output row |
+| On open: outer next(window$) | named by the output row; memory change is in the transition rows above | On open: outer next(window$) |
+| On source next: next(v) into each open window | named by the output row; memory change is in the transition rows above | On source next: next(v) into each open window |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `windowCount(2)` on `a b c d` emits two windows: `[a b]` and `[c d]`, each completed.

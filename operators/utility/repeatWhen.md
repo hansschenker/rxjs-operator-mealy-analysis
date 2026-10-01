@@ -61,6 +61,25 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - notifierComplete → complete.
 - Source error → error.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: { forwarding, waiting, stopped }.
+
+Memory at subscribe: forwarding, notifier subscribed.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Source complete | waiting and signals the notifier | ε |
+| notifierNext | forwarding via resubscribe | next |
+| notifier terminal or source error | stopped | error |
+| notifierComplete | named by the output row; memory change is in the transition rows above | complete |
+| Source error | named by the output row; memory change is in the transition rows above | error |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 A notifier that emits once causes the source to be subscribed twice. The first complete is not written downstream.

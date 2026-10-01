@@ -61,6 +61,26 @@ No inners.
 - All complete → `complete`.
 - Any error → `error`.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { collected inners, outerDone, latest per inner, stopped }.
+
+Memory at subscribe: No inners.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| outerNext appends an inner and subscribes | outerNext appends an inner and subscribes | next(snapshot) |
+| outerComplete freezes the set | outerComplete freezes the set | complete |
+| Inner next stores latest | Inner next stores latest | nothing named on a separate output row |
+| All inners complete after ready | stopped | nothing named on a separate output row |
+| Before every collected inner has a value | named by the output row; memory change is in the transition rows above | ε |
+| Any error | named by the output row; memory change is in the transition rows above | error |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Source emits two inners then completes. First combined next appears only after both inners have emitted.

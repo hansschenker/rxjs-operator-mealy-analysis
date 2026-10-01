@@ -56,6 +56,22 @@ No inners collected.
 
 - Identical to `combineLatestAll`: an inner next writes a snapshot only when every collected inner has a latest.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: Same as combineLatestAll: collected inners, latest per inner, outerDone, stopped.
+
+Memory at subscribe: No inners collected.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| Identical to combineLatestAll | Identical to combineLatestAll | Identical to combineLatestAll: an inner next writes a snapshot only when every collected inner has a latest |
+| Deprecation does not add a state | Deprecation does not add a state | nothing named on a separate output row |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 Same word as `combineLatestAll` on the same higher-order source.

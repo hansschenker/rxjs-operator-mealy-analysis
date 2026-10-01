@@ -59,6 +59,24 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `timeoutTick → error(TimeoutError)` or `ε` plus switch.
 - Replacement notifications copy through.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { waiting(timer), forwardingReplacement, stopped }.
+
+Memory at subscribe: waiting with the first-timer armed.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next cancels and rearms the each-timer | next cancels and rearms the each-timer | next and rearm action |
+| timeoutTick | stopped if no with, else forwardingReplacement | error(TimeoutError) or ε plus switch |
+| Source complete | stopped and cancels the timer | nothing named on a separate output row |
+| Replacement notifications copy through | named by the output row; memory change is in the transition rows above | Replacement notifications copy through |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `each: 1000` with a silent source writes `error(TimeoutError)` about a second after subscribe if `first` is also exceeded.

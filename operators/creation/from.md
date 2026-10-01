@@ -65,6 +65,28 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `reject(e) → error(e)`.
 - Observable input: identity forward.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { idle, pulling(cursor), awaiting(promise \| asyncIterator), forwarding, stopped }. The cursor is the iteration state. Promise and async-iterator waits are distinct only in how the next input is produced.
+
+Memory at subscribe: idle.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| idle × subscribe | pulling(0) for array/iterable, awaiting for promise/async iterable, forwarding for an Observable, stopped if conversion throws | nothing named on a separate output row |
+| pulling(i) × yield(v) | pulling(i+1) | next(v) |
+| pulling × yieldDone | stopped | complete |
+| awaiting × yield(v) | awaiting (async iterator) or stopped (promise success is terminal) | next(v) and, for a promise, also · complete |
+| awaiting × reject(e) | stopped | error(e) |
+| forwarding mirrors the inner terminal transitions | forwarding mirrors the inner terminal transitions | nothing named on a separate output row |
+| unsubscribe | stopped (async iterator return() is attempted) | nothing named on a separate output row |
+| Observable input: identity forward | named by the output row; memory change is in the transition rows above | Observable input: identity forward |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `from([10, 20])`: subscribe, `yield(10)`, `yield(20)`, `yieldDone` writes `next(10) next(20) complete`.

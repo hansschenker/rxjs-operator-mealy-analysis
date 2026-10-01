@@ -59,6 +59,23 @@ Active 0, empty queue.
 - `innerNext(v) → next(v)`.
 - Completion word only when nothing remains to expand.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { active count, queue of values still to expand, outerDone, stopped }.
+
+Memory at subscribe: Active 0, empty queue.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| outerNext and innerNext enqueue an expansion and emit | outerNext and innerNext enqueue an expansion and emit | next(v) |
+| Active expansions are started up to concurrent | Active expansions are started up to concurrent | next(v) |
+| Idle and outer done and empty queue | stopped | Completion word only when nothing remains to expand |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 `of(1).pipe(expand(x => x < 3 ? of(x+1) : EMPTY))` writes `next(1) next(2) next(3) complete`.

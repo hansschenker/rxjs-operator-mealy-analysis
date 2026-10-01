@@ -60,6 +60,25 @@ Outer window observables; inner notifications.
 - `closing_i →` that window `complete`.
 - Source complete completes open windows and the outer.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { list of open windows, stopped }.
+
+Memory at subscribe: No window until the first opening.
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| opening appends a window | opening appends a window | next(window$) |
+| closing_i removes it | closing_i removes it | inner next on each open window |
+| next does not change membership | next does not change membership | nothing named on a separate output row |
+| closing_i | named by the output row; memory change is in the transition rows above | that window complete |
+| Source complete completes open windows and the outer | named by the output row; memory change is in the transition rows above | Source complete completes open windows and the outer |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 One opening, two values, one closing: one window observable emits both values and completes.

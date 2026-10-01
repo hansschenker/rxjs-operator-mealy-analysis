@@ -61,6 +61,25 @@ An RxJS operator is modeled here as a Mealy machine because the word it writes d
 - `complete → complete`.
 - Resubscribe is an action, not a notification.
 
+## State transition table
+
+Read a row as one step of the operator. The current memory and the event decide the next memory and what is sent. Nothing sent is a real result. One event may send more than one notification.
+
+Memory: S = { forwarding(attempt), waitingDelay, stopped }.
+
+Memory at subscribe: forwarding(0).
+
+| Current memory and event | Next memory | Sent downstream |
+|---|---|---|
+| next stays forwarding; may reset attempt to 0 | next stays forwarding; may reset attempt to 0 | next |
+| error | waitingDelay if attempts remain, else stopped | ε if a retry will happen, else error(e) |
+| delayTick | forwarding(attempt+1) via resubscribe | nothing named on a separate output row |
+| complete | stopped | complete |
+| Resubscribe is an action, not a notification | named by the output row; memory change is in the transition rows above | Resubscribe is an action, not a notification |
+| finished, any later event | finished | nothing |
+
+The finished row is absorbing: after an error, a completion, or an unsubscribe, a later event does not change memory and does not send a notification.
+
 ## Worked trace
 
 A source that errors twice with `retry(1)` writes the first attempt's nexts, suppresses the first error, resubscribes, then forwards the second error.
